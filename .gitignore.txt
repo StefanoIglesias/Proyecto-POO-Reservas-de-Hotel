@@ -1,0 +1,15 @@
+# Archivos compilados (.class)
+*.class
+
+# Carpetas de compilación
+/build/
+/bin/
+/dist/
+/target/
+
+# Archivos y carpetas de configuraciones de IDEs
+/.vscode/
+/.idea/
+/nbproject/private/
+*.log
+.DS_Store
