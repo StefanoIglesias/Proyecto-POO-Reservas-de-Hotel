@@ -113,7 +113,7 @@ public class VentanaCliente extends JFrame {
 
     private void cargarDatosTabla() {
         modeloTabla.setRowCount(0); // Limpiar tabla
-        List<Cliente> lista = servicio.listar();
+        List<Cliente> lista = servicio.listarClientes();
         for (Cliente c : lista) {
             String tipoTexto = (c.getTipo() == 2) ? "Premium" : "Normal";
             modeloTabla.addRow(new Object[]{
@@ -138,7 +138,7 @@ public class VentanaCliente extends JFrame {
         int tipo = cmbTipo.getSelectedIndex() == 1 ? 2 : 1; // "Normal" = 1, "Premium" = 2
 
         Cliente cliente = new Cliente(dni, nombres, apellidos, celular, email, tipo);
-        boolean exito = servicio.guardar(cliente);
+        boolean exito = servicio.guardarCliente(cliente);
 
         if (exito) {
             JOptionPane.showMessageDialog(this, "Cliente guardado exitosamente.");
@@ -163,7 +163,7 @@ public class VentanaCliente extends JFrame {
         int tipo = cmbTipo.getSelectedIndex() == 1 ? 2 : 1;
 
         Cliente cliente = new Cliente(dni, nombres, apellidos, celular, email, tipo);
-        boolean exito = servicio.modificar(cliente);
+        boolean exito = servicio.modificarCliente(cliente);
 
         if (exito) {
             JOptionPane.showMessageDialog(this, "Cliente modificado correctamente.");
