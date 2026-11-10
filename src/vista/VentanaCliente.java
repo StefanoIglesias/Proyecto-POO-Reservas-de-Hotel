@@ -1,7 +1,7 @@
 package vista;
 
 import modelo.Cliente;
-import servicio.ServicioCliente;
+import servicio.ServicioPersonaHabitacion;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -15,10 +15,10 @@ public class VentanaCliente extends JFrame {
     private JComboBox<String> cmbTipo;
     private JTable tablaClientes;
     private DefaultTableModel modeloTabla;
-    private ServicioCliente servicio;
+    private ServicioPersonaHabitacion servicio;
 
     public VentanaCliente() {
-        servicio = new ServicioCliente();
+        servicio = new ServicioPersonaHabitacion();
         inicializarComponentes();
         cargarDatosTabla();
         mostrarResumenConsola();
