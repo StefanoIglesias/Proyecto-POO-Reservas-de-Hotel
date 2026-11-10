@@ -185,7 +185,7 @@ public class VentanaCliente extends JFrame {
         int confirm = JOptionPane.showConfirmDialog(this, "¿Está seguro de eliminar al cliente con DNI " + dni + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            boolean exito = servicio.eliminar(dni);
+            boolean exito = servicio.eliminarCliente(dni);
             if (exito) {
                 JOptionPane.showMessageDialog(this, "Cliente eliminado.");
                 cargarDatosTabla();

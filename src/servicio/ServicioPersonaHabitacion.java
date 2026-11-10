@@ -42,57 +42,33 @@ public class ServicioPersonaHabitacion {
         }
     }
 
-    // Buscar cliente por DNI
-    public Cliente buscarCliente(String dni) {
-        List<Cliente> clientes = listarClientes();
-        for (Cliente c : clientes) {
-            if (c.getDni().equalsIgnoreCase(dni)) {
-                return c;
-            }
-        }
-        return null;
-    }
-
-    // Modificar cliente existente según su DNI
-    public boolean modificarCliente(Cliente clienteModificado) {
-        List<Cliente> clientes = listarClientes();
-        boolean encontrado = false;
-
-        for (int i = 0; i < clientes.size(); i++) {
-            if (clientes.get(i).getDni().equalsIgnoreCase(clienteModificado.getDni())) {
-                clientes.set(i, clienteModificado);
-                encontrado = true;
+    public boolean modificarCliente(Cliente c) {
+        List<Cliente> lista = listarClientes();
+        boolean modificado = false;
+        for (int i = 0; i < lista.size(); i++) {
+            if (lista.get(i).getDni().equalsIgnoreCase(c.getDni())) {
+                lista.set(i, c);
+                modificado = true;
                 break;
             }
         }
-
-        if (encontrado) {
-            reescribirArchivo(clientes);
-            return true;
-        }
-        return false;
+        if (modificado) reescribirClientes(lista);
+        return modificado;
     }
 
     // Eliminar cliente por DNI
-    public boolean eliminar(String dni) {
-        List<Cliente> clientes = listarClientes();
-        boolean eliminado = clientes.removeIf(c -> c.getDni().equalsIgnoreCase(dni));
-
-        if (eliminado) {
-            reescribirArchivo(clientes);
-            return true;
-        }
-        return false;
+    public boolean eliminarCliente(String dni) {
+        List<Cliente> lista = listarClientes();
+        boolean eliminado = lista.removeIf(c -> c.getDni().equalsIgnoreCase(dni));
+        if (eliminado) reescribirClientes(lista);
+        return eliminado;
     }
 
-    // Método auxiliar para sobreescribir el archivo completo (usado en modificar y eliminar)
-    private void reescribirArchivo(List<Cliente> clientes) {
+    private void reescribirClientes(List<Cliente> lista) {
         try (PrintWriter pw = new PrintWriter(new FileWriter(ARCHIVO_CLIENTES, false))) {
-            for (Cliente c : clientes) {
-                pw.println(c.toLineaTexto());
-            }
+            for (Cliente c : lista) pw.println(c.toLineaTexto());
         } catch (IOException e) {
-            System.err.println("Error al actualizar el archivo de clientes: " + e.getMessage());
+            System.err.println("Error al actualizar clientes: " + e.getMessage());
         }
     }
 }
