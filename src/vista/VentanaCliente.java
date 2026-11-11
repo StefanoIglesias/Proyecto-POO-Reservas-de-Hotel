@@ -43,10 +43,12 @@ public class VentanaCliente extends JFrame {
 
         JTabbedPane pestanas = new JTabbedPane();
         pestanas.addTab("Gestión de Clientes", crearPanelClientes());
+        pestanas.addTab("Registro de Reservas", crearPanelReservas());
         
         add(pestanas);
         
         cargarDatosClientes();
+        cargarDatosReservas();
         actualizarCombosReserva();
     }
 
@@ -128,6 +130,108 @@ public class VentanaCliente extends JFrame {
 
         return panel;
     }
+    
+    
+    private JPanel crearPanelReservas() {
+        JPanel panel = new JPanel(new BorderLayout());
+
+        JPanel pForm = new JPanel(new GridLayout(6, 2, 5, 5));
+        pForm.setBorder(BorderFactory.createTitledBorder("Gestión de Reservas"));
+
+        pForm.add(new JLabel("ID Reserva (Numérico):"));
+        txtResId = new JTextField();
+        pForm.add(txtResId);
+
+        pForm.add(new JLabel("Fecha (DD/MM/AAAA):"));
+        txtResFecha = new JTextField();
+        pForm.add(txtResFecha);
+
+        pForm.add(new JLabel("Cliente (DNI):"));
+        cmbResCliente = new JComboBox<>();
+        pForm.add(cmbResCliente);
+
+        pForm.add(new JLabel("Habitación (ID):"));
+        cmbResHabitacion = new JComboBox<>();
+        pForm.add(cmbResHabitacion);
+
+        pForm.add(new JLabel("Monto (S/):"));
+        txtResMonto = new JTextField();
+        pForm.add(txtResMonto);
+
+        pForm.add(new JLabel("Método de Pago:"));
+        cmbResMetodoPago = new JComboBox<>(new String[]{"1.- Yape", "2.- Plin", "3.- Transferencia", "4.- Efectivo"});
+        pForm.add(cmbResMetodoPago);
+
+        panel.add(pForm, BorderLayout.NORTH);
+
+        modeloReservas = new DefaultTableModel(new String[]{"ID Reserva", "Fecha", "DNI Cliente", "ID Habitación", "Monto", "Pago"}, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) { return false; }
+        };
+        tablaReservas = new JTable(modeloReservas);
+        panel.add(new JScrollPane(tablaReservas), BorderLayout.CENTER);
+
+        JPanel pBotones = new JPanel();
+        JButton btnGuardar = new JButton("Guardar");
+        JButton btnModificar = new JButton("Modificar");
+        JButton btnEliminar = new JButton("Eliminar");
+        JButton btnLimpiar = new JButton("Limpiar");
+        JButton btnRefrescar = new JButton("Refrescar Listas");
+
+        pBotones.add(btnGuardar);
+        pBotones.add(btnModificar);
+        pBotones.add(btnEliminar);
+        pBotones.add(btnLimpiar);
+        pBotones.add(btnRefrescar);
+        panel.add(pBotones, BorderLayout.SOUTH);
+
+        tablaReservas.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int fila = tablaReservas.getSelectedRow();
+                if (fila != -1) {
+                    txtResId.setText(modeloReservas.getValueAt(fila, 0).toString());
+                    txtResId.setEnabled(false);
+                    txtResFecha.setText(modeloReservas.getValueAt(fila, 1).toString());
+
+                    String dniTabla = modeloReservas.getValueAt(fila, 2).toString();
+                    for (int i = 0; i < cmbResCliente.getItemCount(); i++) {
+                        if (cmbResCliente.getItemAt(i).startsWith(dniTabla)) {
+                            cmbResCliente.setSelectedIndex(i);
+                            break;
+                        }
+                    }
+
+                    String habTabla = modeloReservas.getValueAt(fila, 3).toString();
+                    for (int i = 0; i < cmbResHabitacion.getItemCount(); i++) {
+                        if (cmbResHabitacion.getItemAt(i).startsWith(habTabla)) {
+                            cmbResHabitacion.setSelectedIndex(i);
+                            break;
+                        }
+                    }
+
+                    txtResMonto.setText(modeloReservas.getValueAt(fila, 4).toString());
+
+                    String pagoTabla = modeloReservas.getValueAt(fila, 5).toString();
+                    for (int i = 0; i < cmbResMetodoPago.getItemCount(); i++) {
+                        if (cmbResMetodoPago.getItemAt(i).contains(pagoTabla)) {
+                            cmbResMetodoPago.setSelectedIndex(i);
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+
+        btnGuardar.addActionListener(e -> realizarReserva());
+        btnModificar.addActionListener(e -> modificarReserva());
+        btnEliminar.addActionListener(e -> eliminarReserva());
+        btnLimpiar.addActionListener(e -> limpiarCamposReserva());
+        btnRefrescar.addActionListener(e -> actualizarCombosReserva());
+
+        return panel;
+    }
+
 
     private void cargarDatosClientes() {
         modeloClientes.setRowCount(0);
@@ -228,6 +332,26 @@ public class VentanaCliente extends JFrame {
         tablaClientes.clearSelection();
     }
     
+    
+    private void cargarDatosReservas() {
+        modeloReservas.setRowCount(0);
+        List<Reserva> reservas = servicioReservaDetalle.listarReservas();
+        List<DetalleReserva> detalles = servicioReservaDetalle.listarDetalles();
+
+        for (Reserva r : reservas) {
+            String habId = "N/A";
+            for (DetalleReserva d : detalles) {
+                if (d.getIdReserva().equalsIgnoreCase(r.getIdReserva())) {
+                    habId = d.getIdHabitacion();
+                    break;
+                }
+            }
+            modeloReservas.addRow(new Object[]{
+                r.getIdReserva(), r.getFecha(), r.getDniCliente(), habId, r.getMonto(), r.getMetodoPagoTexto()
+            });
+        }
+    }
+
     private void actualizarCombosReserva() {
         cmbResCliente.removeAllItems();
         List<Cliente> clientes = servicioPersonaHabitacion.listarClientes();
@@ -241,8 +365,114 @@ public class VentanaCliente extends JFrame {
         //    cmbResHabitacion.addItem(h.getIdHabitacion() + " (Hab. " + h.getNumero() + ")");
         }
     
-
     
+    private void realizarReserva() {
+        String idRes = txtResId.getText().trim();
+        String fecha = txtResFecha.getText().trim();
+        String montoStr = txtResMonto.getText().trim();
+
+        if (idRes.isEmpty() || fecha.isEmpty() || montoStr.isEmpty() || 
+            cmbResCliente.getItemCount() == 0 || cmbResHabitacion.getItemCount() == 0) {
+            JOptionPane.showMessageDialog(this, "Ningún campo puede estar en blanco.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (!esNumerico(idRes)) {
+            JOptionPane.showMessageDialog(this, "El ID de la reserva debe ser estrictamente numérico.", "Error de Validación", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            double monto = Double.parseDouble(montoStr);
+            if (monto < 0) {
+                JOptionPane.showMessageDialog(this, "El monto no puede ser un número negativo.", "Error de Validación", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            String dniSeleccionado = cmbResCliente.getSelectedItem().toString().split(" - ")[0];
+            String idHabSeleccionada = cmbResHabitacion.getSelectedItem().toString().split(" ")[0];
+            int metodoPago = cmbResMetodoPago.getSelectedIndex() + 1;
+
+            Reserva r = new Reserva(idRes, fecha, dniSeleccionado, monto, metodoPago);
+            DetalleReserva d = new DetalleReserva(idRes, idRes, idHabSeleccionada);
+
+            if (servicioReservaDetalle.registrarReservaCompleta(r, d)) {
+                JOptionPane.showMessageDialog(this, "Reserva realizada con éxito.");
+                cargarDatosReservas();
+                limpiarCamposReserva();
+            } else {
+                JOptionPane.showMessageDialog(this, "El ID de la reserva ya existe.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Ingrese un monto numérico válido.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    
+    private void modificarReserva() {
+        if (txtResId.isEnabled()) {
+            JOptionPane.showMessageDialog(this, "Seleccione una reserva de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String fecha = txtResFecha.getText().trim();
+        String montoStr = txtResMonto.getText().trim();
+
+        if (fecha.isEmpty() || montoStr.isEmpty() || cmbResCliente.getItemCount() == 0 || cmbResHabitacion.getItemCount() == 0) {
+            JOptionPane.showMessageDialog(this, "Ningún campo puede quedar en blanco al modificar.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            double monto = Double.parseDouble(montoStr);
+            if (monto < 0) {
+                JOptionPane.showMessageDialog(this, "El monto no puede ser un número negativo.", "Error de Validación", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            String dniSeleccionado = cmbResCliente.getSelectedItem().toString().split(" - ")[0];
+            String idHabSeleccionada = cmbResHabitacion.getSelectedItem().toString().split(" ")[0];
+            int metodoPago = cmbResMetodoPago.getSelectedIndex() + 1;
+
+            Reserva r = new Reserva(txtResId.getText().trim(), fecha, dniSeleccionado, monto, metodoPago);
+            DetalleReserva d = new DetalleReserva(txtResId.getText().trim(), txtResId.getText().trim(), idHabSeleccionada);
+
+            if (servicioReservaDetalle.modificarReservaCompleta(r, d)) {
+                JOptionPane.showMessageDialog(this, "Reserva modificada correctamente.");
+                cargarDatosReservas();
+                limpiarCamposReserva();
+            } else {
+                JOptionPane.showMessageDialog(this, "No se pudo modificar la reserva.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Ingrese un monto numérico válido.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void eliminarReserva() {
+        int fila = tablaReservas.getSelectedRow();
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Seleccione una reserva de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String idRes = modeloReservas.getValueAt(fila, 0).toString();
+        if (servicioReservaDetalle.eliminarReserva(idRes)) {
+            JOptionPane.showMessageDialog(this, "Reserva eliminada.");
+            cargarDatosReservas();
+            limpiarCamposReserva();
+        }
+    }
+    
+    
+    private void limpiarCamposReserva() {
+        txtResId.setText("");
+        txtResId.setEnabled(true);
+        txtResFecha.setText("");
+        txtResMonto.setText("");
+        if (cmbResCliente.getItemCount() > 0) cmbResCliente.setSelectedIndex(0);
+        if (cmbResHabitacion.getItemCount() > 0) cmbResHabitacion.setSelectedIndex(0);
+        cmbResMetodoPago.setSelectedIndex(0);
+        tablaReservas.clearSelection();
+    }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new VentanaCliente().setVisible(true));
