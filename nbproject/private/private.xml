@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/C:/SistemaHotel/src/sistemahotel/SistemaHotel.java</file>
+            <file>file:/C:/SistemaHotel/src/modelo/Cliente.java</file>
+            <file>file:/C:/SistemaHotel/src/modelo/Habitacion.java</file>
+            <file>file:/C:/SistemaHotel/src/servicio/ServicioPersonaHabitacion.java</file>
+            <file>file:/C:/SistemaHotel/src/vista/VentanaCliente.java</file>
+            <file>file:/C:/SistemaHotel/clientes.txt</file>
+            <file>file:/C:/SistemaHotel/src/modelo/Reserva.java</file>
+            <file>file:/C:/SistemaHotel/src/modelo/DetalleReserva.java</file>
+            <file>file:/C:/SistemaHotel/src/servicio/ServicioReservaDetalle.java</file>
+            <file>file:/C:/SistemaHotel/src/vista/VentanaReserva.java</file>
+        </group>
+    </open-files>
+</project-private>
