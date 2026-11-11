@@ -4,7 +4,7 @@ public class Habitacion {
 private String idHabitacion;
     private String idPiso;
     private String numero;
-    private int tipo; // 1: Personal, 2: Doble, 3: Matrimonial, 4: Suite, 5: Triple
+    private int tipo; 
 
     public Habitacion(String idHabitacion, String idPiso, String numero, int tipo) {
         this.idHabitacion = idHabitacion;
