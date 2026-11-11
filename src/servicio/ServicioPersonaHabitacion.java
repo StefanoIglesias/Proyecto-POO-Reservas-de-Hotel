@@ -8,7 +8,6 @@ import java.util.List;
 public class ServicioPersonaHabitacion {
     private final String ARCHIVO_CLIENTES = "clientes.txt";
 
-    // --- MÓDULO CLIENTES ---
     public List<Cliente> listarClientes() {
         List<Cliente> lista = new ArrayList<>();
         File f = new File(ARCHIVO_CLIENTES);
@@ -56,7 +55,6 @@ public class ServicioPersonaHabitacion {
         return modificado;
     }
 
-    // Eliminar cliente por DNI
     public boolean eliminarCliente(String dni) {
         List<Cliente> lista = listarClientes();
         boolean eliminado = lista.removeIf(c -> c.getDni().equalsIgnoreCase(dni));

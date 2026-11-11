@@ -1,7 +1,7 @@
 package vista;
 
-import modelo.Cliente;
-import servicio.ServicioPersonaHabitacion;
+import modelo.*;
+import servicio.*;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -11,231 +11,240 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 
 public class VentanaCliente extends JFrame {
-    private JTextField txtDni, txtNombres, txtApellidos, txtCelular, txtEmail;
-    private JComboBox<String> cmbTipo;
+    private ServicioPersonaHabitacion servicioPersonaHabitacion;
+    private ServicioReservaDetalle servicioReservaDetalle;
+
+    // Componentes Clientes
+    private JTextField txtCliDni, txtCliNombres, txtCliApellidos, txtCliCelular, txtCliEmail;
+    private JComboBox<String> cmbCliTipo;
     private JTable tablaClientes;
-    private DefaultTableModel modeloTabla;
-    private ServicioPersonaHabitacion servicio;
+    private DefaultTableModel modeloClientes;
+
+    // Componentes Habitaciones
+    private JTextField txtHabId, txtHabPiso, txtHabNumero;
+    private JComboBox<String> cmbHabTipo;
+    private JTable tablaHabitaciones;
+    private DefaultTableModel modeloHabitaciones;
+
+    // Componentes Reservas
+    private JTextField txtResId, txtResFecha, txtResMonto;
+    private JComboBox<String> cmbResCliente, cmbResHabitacion, cmbResMetodoPago;
+    private JTable tablaReservas;
+    private DefaultTableModel modeloReservas;
 
     public VentanaCliente() {
-        servicio = new ServicioPersonaHabitacion();
-        inicializarComponentes();
-        cargarDatosTabla();
-        mostrarResumenConsola();
-    }
-
-    private void inicializarComponentes() {
-        setTitle("Gestión de Clientes");
-        setSize(750, 500);
+        servicioPersonaHabitacion = new ServicioPersonaHabitacion();
+        servicioReservaDetalle = new ServicioReservaDetalle();
+        
+        setTitle("Sistema de Gestión de Reservas de Hotel");
+        setSize(900, 680);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout());
 
-        // Panel Superior (Formulario)
-        JPanel panelFormulario = new JPanel(new GridLayout(6, 2, 5, 5));
-        panelFormulario.setBorder(BorderFactory.createTitledBorder("Datos del Cliente"));
+        JTabbedPane pestanas = new JTabbedPane();
+        pestanas.addTab("Gestión de Clientes", crearPanelClientes());
+        
+        add(pestanas);
+        
+        cargarDatosClientes();
+        actualizarCombosReserva();
+    }
 
-        panelFormulario.add(new JLabel("DNI:"));
-        txtDni = new JTextField();
-        panelFormulario.add(txtDni);
+    private boolean esNumerico(String texto) {
+        return texto != null && texto.matches("\\d+");
+    }
 
-        panelFormulario.add(new JLabel("Nombres:"));
-        txtNombres = new JTextField();
-        panelFormulario.add(txtNombres);
+    private JPanel crearPanelClientes() {
+        JPanel panel = new JPanel(new BorderLayout());
 
-        panelFormulario.add(new JLabel("Apellidos:"));
-        txtApellidos = new JTextField();
-        panelFormulario.add(txtApellidos);
+        JPanel pForm = new JPanel(new GridLayout(6, 2, 5, 5));
+        pForm.setBorder(BorderFactory.createTitledBorder("Datos del Cliente"));
 
-        panelFormulario.add(new JLabel("Celular:"));
-        txtCelular = new JTextField();
-        panelFormulario.add(txtCelular);
+        pForm.add(new JLabel("DNI (8 dígitos):"));
+        txtCliDni = new JTextField();
+        pForm.add(txtCliDni);
 
-        panelFormulario.add(new JLabel("Email:"));
-        txtEmail = new JTextField();
-        panelFormulario.add(txtEmail);
+        pForm.add(new JLabel("Nombres:"));
+        txtCliNombres = new JTextField();
+        pForm.add(txtCliNombres);
 
-        panelFormulario.add(new JLabel("Tipo de Cliente:"));
-        cmbTipo = new JComboBox<>(new String[]{"Normal", "Premium"});
-        panelFormulario.add(cmbTipo);
+        pForm.add(new JLabel("Apellidos:"));
+        txtCliApellidos = new JTextField();
+        pForm.add(txtCliApellidos);
 
-        add(panelFormulario, BorderLayout.NORTH);
+        pForm.add(new JLabel("Celular (9 dígitos):"));
+        txtCliCelular = new JTextField();
+        pForm.add(txtCliCelular);
 
-        // Panel Central (Tabla)
-        modeloTabla = new DefaultTableModel(new String[]{"DNI", "Nombres", "Apellidos", "Celular", "Email", "Tipo"}, 0) {
+        pForm.add(new JLabel("Email:"));
+        txtCliEmail = new JTextField();
+        pForm.add(txtCliEmail);
+
+        pForm.add(new JLabel("Tipo de Cliente:"));
+        cmbCliTipo = new JComboBox<>(new String[]{"Normal", "Premium"});
+        pForm.add(cmbCliTipo);
+
+        panel.add(pForm, BorderLayout.NORTH);
+
+        modeloClientes = new DefaultTableModel(new String[]{"DNI", "Nombres", "Apellidos", "Celular", "Email", "Tipo"}, 0) {
             @Override
-            public boolean isCellEditable(int row, int column) {
-                return false; // Hacer celdas no editables directamente
-            }
+            public boolean isCellEditable(int row, int column) { return false; }
         };
-        tablaClientes = new JTable(modeloTabla);
-        add(new JScrollPane(tablaClientes), BorderLayout.CENTER);
+        tablaClientes = new JTable(modeloClientes);
+        panel.add(new JScrollPane(tablaClientes), BorderLayout.CENTER);
 
-        // Panel Inferior (Botones)
-        JPanel panelBotones = new JPanel();
+        JPanel pBotones = new JPanel();
         JButton btnGuardar = new JButton("Guardar");
         JButton btnModificar = new JButton("Modificar");
         JButton btnEliminar = new JButton("Eliminar");
         JButton btnLimpiar = new JButton("Limpiar");
 
-        panelBotones.add(btnGuardar);
-        panelBotones.add(btnModificar);
-        panelBotones.add(btnEliminar);
-        panelBotones.add(btnLimpiar);
+        pBotones.add(btnGuardar);
+        pBotones.add(btnModificar);
+        pBotones.add(btnEliminar);
+        pBotones.add(btnLimpiar);
+        panel.add(pBotones, BorderLayout.SOUTH);
 
-        add(panelBotones, BorderLayout.SOUTH);
-
-        // Eventos de la Tabla para rellenar campos al hacer clic
         tablaClientes.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 int fila = tablaClientes.getSelectedRow();
                 if (fila != -1) {
-                    txtDni.setText(modeloTabla.getValueAt(fila, 0).toString());
-                    txtDni.setEnabled(false); // DNI único no editable al modificar
-                    txtNombres.setText(modeloTabla.getValueAt(fila, 1).toString());
-                    txtApellidos.setText(modeloTabla.getValueAt(fila, 2).toString());
-                    txtCelular.setText(modeloTabla.getValueAt(fila, 3).toString());
-                    txtEmail.setText(modeloTabla.getValueAt(fila, 4).toString());
-                    
-                    String tipoStr = modeloTabla.getValueAt(fila, 5).toString();
-                    cmbTipo.setSelectedItem(tipoStr);
+                    txtCliDni.setText(modeloClientes.getValueAt(fila, 0).toString());
+                    txtCliDni.setEnabled(false);
+                    txtCliNombres.setText(modeloClientes.getValueAt(fila, 1).toString());
+                    txtCliApellidos.setText(modeloClientes.getValueAt(fila, 2).toString());
+                    txtCliCelular.setText(modeloClientes.getValueAt(fila, 3).toString());
+                    txtCliEmail.setText(modeloClientes.getValueAt(fila, 4).toString());
+                    cmbCliTipo.setSelectedItem(modeloClientes.getValueAt(fila, 5).toString());
                 }
             }
         });
 
-        // Acciones de Botones
         btnGuardar.addActionListener(e -> guardarCliente());
         btnModificar.addActionListener(e -> modificarCliente());
         btnEliminar.addActionListener(e -> eliminarCliente());
-        btnLimpiar.addActionListener(e -> limpiarCampos());
+        btnLimpiar.addActionListener(e -> limpiarCamposCliente());
+
+        return panel;
     }
 
-    private void cargarDatosTabla() {
-        modeloTabla.setRowCount(0); // Limpiar tabla
-        List<Cliente> lista = servicio.listarClientes();
+    private void cargarDatosClientes() {
+        modeloClientes.setRowCount(0);
+        List<Cliente> lista = servicioPersonaHabitacion.listarClientes();
         for (Cliente c : lista) {
-            String tipoTexto = (c.getTipo() == 2) ? "Premium" : "Normal";
-            modeloTabla.addRow(new Object[]{
-                c.getDni(),
-                c.getNombres(),
-                c.getApellidos(),
-                c.getCelular(),
-                c.getEmail(),
-                tipoTexto
-            });
+            String tipoTxt = (c.getTipo() == 2) ? "Premium" : "Normal";
+            modeloClientes.addRow(new Object[]{c.getDni(), c.getNombres(), c.getApellidos(), c.getCelular(), c.getEmail(), tipoTxt});
         }
     }
 
     private void guardarCliente() {
-        if (validarCamposVacios()) return;
+        String dni = txtCliDni.getText().trim();
+        String celular = txtCliCelular.getText().trim();
+        
+        if (dni.isEmpty() || txtCliNombres.getText().trim().isEmpty() || 
+            txtCliApellidos.getText().trim().isEmpty() || celular.isEmpty() || 
+            txtCliEmail.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Ningún campo puede estar en blanco.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
-        String dni = txtDni.getText().trim();
-        String nombres = txtNombres.getText().trim();
-        String apellidos = txtApellidos.getText().trim();
-        String celular = txtCelular.getText().trim();
-        String email = txtEmail.getText().trim();
-        int tipo = cmbTipo.getSelectedIndex() == 1 ? 2 : 1; // "Normal" = 1, "Premium" = 2
+        if (!dni.matches("\\d{8}")) {
+            JOptionPane.showMessageDialog(this, "El DNI debe tener exactamente 8 dígitos numéricos.", "Error de Validación", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
-        Cliente cliente = new Cliente(dni, nombres, apellidos, celular, email, tipo);
-        boolean exito = servicio.guardarCliente(cliente);
+        if (!celular.matches("9\\d{8}")) {
+            JOptionPane.showMessageDialog(this, "El celular debe tener 9 dígitos y empezar obligatoriamente con 9.", "Error de Validación", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
-        if (exito) {
+        int tipo = cmbCliTipo.getSelectedIndex() == 1 ? 2 : 1;
+        Cliente c = new Cliente(dni, txtCliNombres.getText().trim(), txtCliApellidos.getText().trim(), celular, txtCliEmail.getText().trim(), tipo);
+        
+        if (servicioPersonaHabitacion.guardarCliente(c)) {
             JOptionPane.showMessageDialog(this, "Cliente guardado exitosamente.");
-            cargarDatosTabla();
-            limpiarCampos();
+            cargarDatosClientes();
+            actualizarCombosReserva();
+            limpiarCamposCliente();
         } else {
-            JOptionPane.showMessageDialog(this, "Error: Ya existe un cliente registrado con el DNI " + dni, "Duplicado", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "El DNI ya se encuentra registrado.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void modificarCliente() {
-        if (txtDni.isEnabled()) {
-            JOptionPane.showMessageDialog(this, "Seleccione un cliente de la tabla para modificar.", "Aviso", JOptionPane.WARNING_MESSAGE);
+        if (txtCliDni.isEnabled()) {
+            JOptionPane.showMessageDialog(this, "Seleccione un cliente de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String celular = txtCliCelular.getText().trim();
+        if (txtCliNombres.getText().trim().isEmpty() || txtCliApellidos.getText().trim().isEmpty() || 
+            celular.isEmpty() || txtCliEmail.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Ningún campo puede quedar en blanco al modificar.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        String dni = txtDni.getText().trim();
-        String nombres = txtNombres.getText().trim();
-        String apellidos = txtApellidos.getText().trim();
-        String celular = txtCelular.getText().trim();
-        String email = txtEmail.getText().trim();
-        int tipo = cmbTipo.getSelectedIndex() == 1 ? 2 : 1;
+        if (!celular.matches("9\\d{8}")) {
+            JOptionPane.showMessageDialog(this, "El celular debe tener 9 dígitos y empezar obligatoriamente con 9.", "Error de Validación", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
-        Cliente cliente = new Cliente(dni, nombres, apellidos, celular, email, tipo);
-        boolean exito = servicio.modificarCliente(cliente);
-
-        if (exito) {
+        int tipo = cmbCliTipo.getSelectedIndex() == 1 ? 2 : 1;
+        Cliente c = new Cliente(txtCliDni.getText().trim(), txtCliNombres.getText().trim(), txtCliApellidos.getText().trim(), celular, txtCliEmail.getText().trim(), tipo);
+        
+        if (servicioPersonaHabitacion.modificarCliente(c)) {
             JOptionPane.showMessageDialog(this, "Cliente modificado correctamente.");
-            cargarDatosTabla();
-            limpiarCampos();
+            cargarDatosClientes();
+            actualizarCombosReserva();
+            limpiarCamposCliente();
         } else {
-            JOptionPane.showMessageDialog(this, "No se pudo modificar el cliente.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "No se pudo modificar.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void eliminarCliente() {
         int fila = tablaClientes.getSelectedRow();
         if (fila == -1) {
-            JOptionPane.showMessageDialog(this, "Seleccione un cliente de la tabla para eliminar.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Seleccione un cliente de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
-        String dni = modeloTabla.getValueAt(fila, 0).toString();
-        int confirm = JOptionPane.showConfirmDialog(this, "¿Está seguro de eliminar al cliente con DNI " + dni + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
-
-        if (confirm == JOptionPane.YES_OPTION) {
-            boolean exito = servicio.eliminarCliente(dni);
-            if (exito) {
-                JOptionPane.showMessageDialog(this, "Cliente eliminado.");
-                cargarDatosTabla();
-                limpiarCampos();
-            } else {
-                JOptionPane.showMessageDialog(this, "No se pudo eliminar el registro.", "Error", JOptionPane.ERROR_MESSAGE);
-            }
+        String dni = modeloClientes.getValueAt(fila, 0).toString();
+        if (servicioPersonaHabitacion.eliminarCliente(dni)) {
+            JOptionPane.showMessageDialog(this, "Cliente eliminado.");
+            cargarDatosClientes();
+            actualizarCombosReserva();
+            limpiarCamposCliente();
         }
     }
 
-    private void limpiarCampos() {
-        txtDni.setText("");
-        txtDni.setEnabled(true); // Habilitar nuevamente para nuevos registros
-        txtNombres.setText("");
-        txtApellidos.setText("");
-        txtCelular.setText("");
-        txtEmail.setText("");
-        cmbTipo.setSelectedIndex(0);
+    private void limpiarCamposCliente() {
+        txtCliDni.setText("");
+        txtCliDni.setEnabled(true);
+        txtCliNombres.setText("");
+        txtCliApellidos.setText("");
+        txtCliCelular.setText("");
+        txtCliEmail.setText("");
+        cmbCliTipo.setSelectedIndex(0);
         tablaClientes.clearSelection();
     }
-
-    private boolean validarCamposVacios() {
-        if (txtDni.getText().trim().isEmpty() || txtNombres.getText().trim().isEmpty() ||
-            txtApellidos.getText().trim().isEmpty() || txtCelular.getText().trim().isEmpty() ||
-            txtEmail.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Todos los campos son obligatorios.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-            return true;
+    
+    private void actualizarCombosReserva() {
+        cmbResCliente.removeAllItems();
+        List<Cliente> clientes = servicioPersonaHabitacion.listarClientes();
+        for (Cliente c : clientes) {
+            cmbResCliente.addItem(c.getDni() + " - " + c.getNombres() + " " + c.getApellidos());
         }
-        return false;
-    }
 
-    private void mostrarResumenConsola() {
-        System.out.println("==================================================");
-        System.out.println("  RESUMEN DE COMPONENTES SWING UTILIZADOS EN VISTA  ");
-        System.out.println("==================================================");
-        System.out.println("- JFrame: Ventana principal de la aplicación.");
-        System.out.println("- JPanel: Contenedores para organizar componentes (GridLayout y BorderLayout).");
-        System.out.println("- JLabel: Etiquetas de texto descriptivas para el formulario.");
-        System.out.println("- JTextField: Campos de texto para ingreso de DNI, Nombres, Apellidos, Celular y Email.");
-        System.out.println("- JComboBox: Selector desplegable para el tipo de cliente ('Normal' / 'Premium').");
-        System.out.println("- JTable & DefaultTableModel: Grilla para listar y visualizar los clientes registrados.");
-        System.out.println("- JScrollPane: Panel con barras de desplazamiento para la tabla.");
-        System.out.println("- JButton: Botones de acción (Guardar, Modificar, Eliminar, Limpiar).");
-        System.out.println("- JOptionPane: Cuadros de diálogo para mensajes informativos y de advertencia.");
-        System.out.println("==================================================");
-    }
+        cmbResHabitacion.removeAllItems();
+        //List<Habitacion> habitaciones = servicioPersonaHabitacion.listarHabitaciones();
+        //for (Habitacion h : habitaciones) {
+        //    cmbResHabitacion.addItem(h.getIdHabitacion() + " (Hab. " + h.getNumero() + ")");
+        }
+    
+
+    
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            new VentanaCliente().setVisible(true);
-        });
+        SwingUtilities.invokeLater(() -> new VentanaCliente().setVisible(true));
     }
 }
