@@ -28,6 +28,25 @@ public class ServicioReservaDetalle {
         }
         return lista;
     }
+    
+    public List<DetalleReserva> listarDetalles() {
+    List<DetalleReserva> lista = new ArrayList<>();
+    File f = new File(ARCHIVO_DETALLES);
+    if (!f.exists()) return lista;
+
+    try (BufferedReader br = new BufferedReader(new FileReader(f))) {
+        String linea;
+        while ((linea = br.readLine()) != null) {
+            String[] p = linea.split(";");
+            if (p.length == 3) {
+                lista.add(new DetalleReserva(p[0], p[1], p[2]));
+            }
+        }
+    } catch (IOException e) {
+        System.err.println("Error al leer detalles de reserva: " + e.getMessage());
+    }
+    return lista;
+}
 
     public boolean registrarReservaCompleta(Reserva r, DetalleReserva d) {
         List<Reserva> reservas = listarReservas();
