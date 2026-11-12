@@ -34,6 +34,7 @@ public class VentanaCliente extends JFrame {
     private JComboBox<String> cmbHabTipo;
     private JTable tablaHabitaciones;
     private DefaultTableModel modeloHabitaciones;
+    private JPanel panelContenedorPisos;
 
     // Componentes Reservas
     private JTextField txtResId, txtResFechaInicio, txtResDias;
@@ -49,7 +50,7 @@ public class VentanaCliente extends JFrame {
         servicioDetalleReserva = new ServicioDetalleReserva();
         
         setTitle("Sistema de Gestión de Reservas de Hotel");
-        setSize(900, 680);
+        setSize(1050, 780);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -70,32 +71,37 @@ public class VentanaCliente extends JFrame {
         return texto != null && texto.matches("\\d+");
     }
 
+    private String obtenerTextoTipoHabitacion(int tipo) {
+        switch (tipo) {
+            case 1: return "Personal (50 S/)";
+            case 2: return "Doble (100 S/)";
+            case 3: return "Triple (150 S/)";
+            case 4: return "Suite (200 S/)";
+            case 5: return "Matrimonial (250 S/)";
+            default: return "Personal (50 S/)";
+        }
+    }
+
     private JPanel crearPanelClientes() {
         JPanel panel = new JPanel(new BorderLayout());
-
         JPanel pForm = new JPanel(new GridLayout(6, 2, 5, 5));
         pForm.setBorder(BorderFactory.createTitledBorder("Datos del Cliente"));
 
         pForm.add(new JLabel("DNI (8 dígitos):"));
         txtCliDni = new JTextField();
         pForm.add(txtCliDni);
-
         pForm.add(new JLabel("Nombres:"));
         txtCliNombres = new JTextField();
         pForm.add(txtCliNombres);
-
         pForm.add(new JLabel("Apellidos:"));
         txtCliApellidos = new JTextField();
         pForm.add(txtCliApellidos);
-
         pForm.add(new JLabel("Celular:"));
         txtCliCelular = new JTextField();
         pForm.add(txtCliCelular);
-
         pForm.add(new JLabel("Email:"));
         txtCliEmail = new JTextField();
         pForm.add(txtCliEmail);
-
         pForm.add(new JLabel("Tipo de Cliente:"));
         cmbCliTipo = new JComboBox<>(new String[]{"Normal", "Premium"});
         pForm.add(cmbCliTipo);
@@ -104,7 +110,7 @@ public class VentanaCliente extends JFrame {
 
         modeloClientes = new DefaultTableModel(new String[]{"DNI", "Nombres", "Apellidos", "Celular", "Email", "Tipo"}, 0) {
             @Override
-            public boolean isCellEditable(int row, int column) { return false; }
+            public boolean isCellEditable(int r, int c) { return false; }
         };
         tablaClientes = new JTable(modeloClientes);
         panel.add(new JScrollPane(tablaClientes), BorderLayout.CENTER);
@@ -147,45 +153,58 @@ public class VentanaCliente extends JFrame {
 
     private JPanel crearPanelHabitaciones() {
         JPanel panel = new JPanel(new BorderLayout());
-
         JPanel pForm = new JPanel(new GridLayout(4, 2, 5, 5));
-        pForm.setBorder(BorderFactory.createTitledBorder("Datos de la Habitación"));
+        pForm.setBorder(BorderFactory.createTitledBorder("Datos de la Habitación (Tarifas Fijas)"));
 
         pForm.add(new JLabel("ID Habitación (Numérico):"));
         txtHabId = new JTextField();
         pForm.add(txtHabId);
-
         pForm.add(new JLabel("ID Piso (Numérico):"));
         txtHabPiso = new JTextField();
         pForm.add(txtHabPiso);
-
         pForm.add(new JLabel("Número de Habitación (Numérico):"));
         txtHabNumero = new JTextField();
         pForm.add(txtHabNumero);
-
-        pForm.add(new JLabel("Tipo de Habitación:"));
-        cmbHabTipo = new JComboBox<>(new String[]{"1.- Personal", "2.- Doble", "3.- Matrimonial", "4.- Suite", "5.- Triple"});
+        pForm.add(new JLabel("Tipo y Tarifa:"));
+        cmbHabTipo = new JComboBox<>(new String[]{
+            "Personal (50 S/)", 
+            "Doble (100 S/)", 
+            "Triple (150 S/)", 
+            "Suite (200 S/)", 
+            "Matrimonial (250 S/)"
+        });
         pForm.add(cmbHabTipo);
 
         panel.add(pForm, BorderLayout.NORTH);
 
-        modeloHabitaciones = new DefaultTableModel(new String[]{"ID", "Piso", "Número", "Tipo"}, 0) {
+        JTabbedPane subPestanasHab = new JTabbedPane();
+        modeloHabitaciones = new DefaultTableModel(new String[]{"ID", "Piso", "Número", "Tipo / Tarifa"}, 0) {
             @Override
-            public boolean isCellEditable(int row, int column) { return false; }
+            public boolean isCellEditable(int r, int c) { return false; }
         };
         tablaHabitaciones = new JTable(modeloHabitaciones);
-        panel.add(new JScrollPane(tablaHabitaciones), BorderLayout.CENTER);
+        subPestanasHab.addTab("Lista en Tabla", new JScrollPane(tablaHabitaciones));
+
+        panelContenedorPisos = new JPanel();
+        panelContenedorPisos.setLayout(new BoxLayout(panelContenedorPisos, BoxLayout.Y_AXIS));
+        JScrollPane scrollTarjetas = new JScrollPane(panelContenedorPisos);
+        scrollTarjetas.getVerticalScrollBar().setUnitIncrement(16);
+        subPestanasHab.addTab("Mapa de Estado por Pisos", scrollTarjetas);
+
+        panel.add(subPestanasHab, BorderLayout.CENTER);
 
         JPanel pBotones = new JPanel();
         JButton btnGuardar = new JButton("Guardar");
         JButton btnModificar = new JButton("Modificar");
         JButton btnEliminar = new JButton("Eliminar");
         JButton btnLimpiar = new JButton("Limpiar");
+        JButton btnRefrescarMapa = new JButton("Actualizar Mapa");
 
         pBotones.add(btnGuardar);
         pBotones.add(btnModificar);
         pBotones.add(btnEliminar);
         pBotones.add(btnLimpiar);
+        pBotones.add(btnRefrescarMapa);
         panel.add(pBotones, BorderLayout.SOUTH);
 
         tablaHabitaciones.addMouseListener(new MouseAdapter() {
@@ -200,7 +219,7 @@ public class VentanaCliente extends JFrame {
                     
                     String tipoStr = modeloHabitaciones.getValueAt(fila, 3).toString();
                     for (int i = 0; i < cmbHabTipo.getItemCount(); i++) {
-                        if (cmbHabTipo.getItemAt(i).contains(tipoStr)) {
+                        if (cmbHabTipo.getItemAt(i).equalsIgnoreCase(tipoStr)) {
                             cmbHabTipo.setSelectedIndex(i);
                             break;
                         }
@@ -213,10 +232,10 @@ public class VentanaCliente extends JFrame {
         btnModificar.addActionListener(e -> modificarHabitacion());
         btnEliminar.addActionListener(e -> eliminarHabitacion());
         btnLimpiar.addActionListener(e -> limpiarCamposHabitacion());
+        btnRefrescarMapa.addActionListener(e -> actualizarMapaHabitaciones());
 
         return panel;
     }
-
 
     private JPanel crearPanelReservas() {
         JPanel panelPrincipal = new JPanel(new BorderLayout());
@@ -290,7 +309,7 @@ public class VentanaCliente extends JFrame {
                     txtResId.setEnabled(false);
                     txtResFechaInicio.setText(modeloReservas.getValueAt(fila, 1).toString());
                     txtResDias.setText(modeloReservas.getValueAt(fila, 2).toString());
-
+                    
                     String dniTabla = modeloReservas.getValueAt(fila, 4).toString();
                     for (int i = 0; i < cmbResCliente.getItemCount(); i++) {
                         if (cmbResCliente.getItemAt(i).startsWith(dniTabla)) {
@@ -334,47 +353,143 @@ public class VentanaCliente extends JFrame {
         return panelPrincipal;
     }
 
-    // --- MÉTODOS CLIENTES ---
+    private void actualizarMapaHabitaciones() {
+        panelContenedorPisos.removeAll();
+        List<Habitacion> habitaciones = servicioHabitacion.listarHabitaciones();
+        List<DetalleReserva> detalles = servicioDetalleReserva.listarDetalles();
+        List<Reserva> reservas = servicioReserva.listarReservas();
+        List<Cliente> clientes = servicioCliente.listarClientes();
+
+        LocalDate hoy = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        Map<String, List<Habitacion>> habitacionesPorPiso = habitaciones.stream()
+                .collect(Collectors.groupingBy(Habitacion::getIdPiso));
+
+        if (habitacionesPorPiso.isEmpty()) {
+            JLabel lblVacio = new JLabel("No hay habitaciones registradas.", JLabel.CENTER);
+            panelContenedorPisos.add(lblVacio);
+        } else {
+            for (Map.Entry<String, List<Habitacion>> entry : habitacionesPorPiso.entrySet()) {
+                String piso = entry.getKey();
+                JPanel panelPiso = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 15));
+                panelPiso.setBorder(BorderFactory.createTitledBorder("--- Piso " + piso + " ---"));
+
+                for (Habitacion h : entry.getValue()) {
+                    String estadoTexto = "DISPONIBLE";
+                    Color colorFondo = new Color(234, 250, 234); 
+                    Color colorTexto = new Color(39, 174, 96);
+
+                    Reserva reservaActiva = null;
+                    Reserva reservaFuturaCercana = null;
+
+                    for (DetalleReserva d : detalles) {
+                        if (d.getIdHabitacion().equalsIgnoreCase(h.getIdHabitacion())) {
+                            for (Reserva r : reservas) {
+                                if (r.getIdReserva().equalsIgnoreCase(d.getIdReserva())) {
+                                    try {
+                                        LocalDate fInicio = LocalDate.parse(r.getFechaInicio(), formatter);
+                                        LocalDate fSalida = LocalDate.parse(r.getFechaSalida(), formatter);
+
+                                        if (!hoy.isBefore(fInicio) && hoy.isBefore(fSalida)) {
+                                            reservaActiva = r;
+                                            break;
+                                        } else if (fInicio.isAfter(hoy) || fInicio.isEqual(hoy)) {
+                                            if (reservaFuturaCercana == null || fInicio.isBefore(LocalDate.parse(reservaFuturaCercana.getFechaInicio(), formatter))) {
+                                                reservaFuturaCercana = r;
+                                            }
+                                        }
+                                    } catch (Exception ignored) {}
+                                }
+                            }
+                        }
+                        if (reservaActiva != null) break;
+                    }
+
+                    if (reservaActiva != null) {
+                        String apellido = "";
+                        for (Cliente c : clientes) {
+                            if (c.getDni().equalsIgnoreCase(reservaActiva.getDniCliente())) {
+                                apellido = c.getApellidos();
+                                break;
+                            }
+                        }
+                        estadoTexto = "OCUPADA (" + apellido + ")\nHasta " + reservaActiva.getFechaSalida();
+                        colorFondo = new Color(253, 237, 236); 
+                        colorTexto = new Color(192, 57, 43);
+                    } else if (reservaFuturaCercana != null) {
+                        estadoTexto = "Reservada a\npartir del " + reservaFuturaCercana.getFechaInicio();
+                        colorFondo = new Color(254, 249, 231); 
+                        colorTexto = new Color(211, 84, 0);
+                    }
+
+                    JPanel tarjeta = new JPanel(new BorderLayout());
+                    tarjeta.setPreferredSize(new Dimension(170, 110));
+                    tarjeta.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 1));
+                    tarjeta.setBackground(colorFondo);
+
+                    JLabel lblNum = new JLabel("Hab. " + h.getNumero(), JLabel.CENTER);
+                    lblNum.setFont(new Font("Arial", Font.BOLD, 12));
+                    
+                    String textoTipoLimpio = obtenerTextoTipoHabitacion(h.getTipo()).split("-")[0].trim();
+                    JLabel lblTipo = new JLabel(textoTipoLimpio, JLabel.CENTER);
+                    lblTipo.setFont(new Font("Arial", Font.PLAIN, 11));
+
+                    JLabel lblEstado = new JLabel("<html><center>" + estadoTexto.replace("\n", "<br>") + "</center></html>", JLabel.CENTER);
+                    lblEstado.setFont(new Font("Arial", Font.BOLD, 10));
+                    lblEstado.setForeground(colorTexto);
+
+                    JPanel pInfo = new JPanel(new GridLayout(3, 1));
+                    pInfo.setOpaque(false);
+                    pInfo.add(lblNum);
+                    pInfo.add(lblTipo);
+                    pInfo.add(lblEstado);
+
+                    tarjeta.add(pInfo, BorderLayout.CENTER);
+                    panelPiso.add(tarjeta);
+                }
+                panelContenedorPisos.add(panelPiso);
+            }
+        }
+        panelContenedorPisos.revalidate();
+        panelContenedorPisos.repaint();
+    }
+
     private void cargarDatosClientes() {
         modeloClientes.setRowCount(0);
-        List<Cliente> lista = servicioCliente.listarClientes();
-        for (Cliente c : lista) {
-            String tipoTxt = (c.getTipo() == 2) ? "Premium" : "Normal";
-            modeloClientes.addRow(new Object[]{c.getDni(), c.getNombres(), c.getApellidos(), c.getCelular(), c.getEmail(), tipoTxt});
+        for (Cliente c : servicioCliente.listarClientes()) {
+            modeloClientes.addRow(new Object[]{c.getDni(), c.getNombres(), c.getApellidos(), c.getCelular(), c.getEmail(), c.getTipo() == 2 ? "Premium" : "Normal"});
         }
     }
 
     private void guardarCliente() {
         String dni = txtCliDni.getText().trim();
-        String celular = txtCliCelular.getText().trim();
-        
-        if (dni.isEmpty() || txtCliNombres.getText().trim().isEmpty() || 
-            txtCliApellidos.getText().trim().isEmpty() || celular.isEmpty() || 
-            txtCliEmail.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Ningún campo puede estar en blanco.", "Aviso", JOptionPane.WARNING_MESSAGE);
+        String cel = txtCliCelular.getText().trim();
+        String email = txtCliEmail.getText().trim().toLowerCase();
+
+        if (dni.isEmpty() || txtCliNombres.getText().trim().isEmpty() || txtCliApellidos.getText().trim().isEmpty() || cel.isEmpty() || email.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Complete todos los campos.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (!dni.matches("\\d{8}") || !cel.matches("9\\d{8}")) {
+            JOptionPane.showMessageDialog(this, "DNI debe tener 8 dígitos y Celular 9 dígitos empezando con 9.", "Error", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        if (!dni.matches("\\d{8}")) {
-            JOptionPane.showMessageDialog(this, "El DNI debe tener exactamente 8 dígitos numéricos.", "Error de Validación", JOptionPane.WARNING_MESSAGE);
+        // Validación estricta del correo electrónico (excluyendo oultook, solo @gmail.com, @outlook.com, @hotmail.com)
+        if (!email.endsWith("@gmail.com") && !email.endsWith("@outlook.com") && !email.endsWith("@hotmail.com")) {
+            JOptionPane.showMessageDialog(this, "Dirección de correo inválida", "Error de Validación", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        if (!celular.matches("9\\d{8}")) {
-            JOptionPane.showMessageDialog(this, "El celular debe tener 9 dígitos y empezar obligatoriamente con 9.", "Error de Validación", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        int tipo = cmbCliTipo.getSelectedIndex() == 1 ? 2 : 1;
-        Cliente c = new Cliente(dni, txtCliNombres.getText().trim(), txtCliApellidos.getText().trim(), celular, txtCliEmail.getText().trim(), tipo);
-        
+        Cliente c = new Cliente(dni, txtCliNombres.getText().trim(), txtCliApellidos.getText().trim(), cel, email, cmbCliTipo.getSelectedIndex() + 1);
         if (servicioCliente.guardarCliente(c)) {
-            JOptionPane.showMessageDialog(this, "Cliente guardado exitosamente.");
+            JOptionPane.showMessageDialog(this, "Cliente guardado.");
             cargarDatosClientes();
             actualizarCombosReserva();
             limpiarCamposCliente();
         } else {
-            JOptionPane.showMessageDialog(this, "El DNI ya se encuentra registrado.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "El DNI ya existe.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -383,40 +498,26 @@ public class VentanaCliente extends JFrame {
             JOptionPane.showMessageDialog(this, "Seleccione un cliente de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        String celular = txtCliCelular.getText().trim();
-        if (txtCliNombres.getText().trim().isEmpty() || txtCliApellidos.getText().trim().isEmpty() || 
-            celular.isEmpty() || txtCliEmail.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Ningún campo puede quedar en blanco al modificar.", "Aviso", JOptionPane.WARNING_MESSAGE);
+
+        String email = txtCliEmail.getText().trim().toLowerCase();
+        if (!email.endsWith("@gmail.com") && !email.endsWith("@outlook.com") && !email.endsWith("@hotmail.com")) {
+            JOptionPane.showMessageDialog(this, "Dirección de correo inválida", "Error de Validación", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        if (!celular.matches("9\\d{8}")) {
-            JOptionPane.showMessageDialog(this, "El celular debe tener 9 dígitos y empezar obligatoriamente con 9.", "Error de Validación", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        int tipo = cmbCliTipo.getSelectedIndex() == 1 ? 2 : 1;
-        Cliente c = new Cliente(txtCliDni.getText().trim(), txtCliNombres.getText().trim(), txtCliApellidos.getText().trim(), celular, txtCliEmail.getText().trim(), tipo);
-        
+        Cliente c = new Cliente(txtCliDni.getText().trim(), txtCliNombres.getText().trim(), txtCliApellidos.getText().trim(), txtCliCelular.getText().trim(), email, cmbCliTipo.getSelectedIndex() + 1);
         if (servicioCliente.modificarCliente(c)) {
-            JOptionPane.showMessageDialog(this, "Cliente modificado correctamente.");
+            JOptionPane.showMessageDialog(this, "Cliente modificado.");
             cargarDatosClientes();
             actualizarCombosReserva();
             limpiarCamposCliente();
-        } else {
-            JOptionPane.showMessageDialog(this, "No se pudo modificar.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void eliminarCliente() {
         int fila = tablaClientes.getSelectedRow();
-        if (fila == -1) {
-            JOptionPane.showMessageDialog(this, "Seleccione un cliente de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        String dni = modeloClientes.getValueAt(fila, 0).toString();
-        if (servicioCliente.eliminarCliente(dni)) {
-            JOptionPane.showMessageDialog(this, "Cliente eliminado.");
+        if (fila == -1) return;
+        if (servicioCliente.eliminarCliente(modeloClientes.getValueAt(fila, 0).toString())) {
             cargarDatosClientes();
             actualizarCombosReserva();
             limpiarCamposCliente();
@@ -424,93 +525,75 @@ public class VentanaCliente extends JFrame {
     }
 
     private void limpiarCamposCliente() {
-        txtCliDni.setText("");
-        txtCliDni.setEnabled(true);
-        txtCliNombres.setText("");
-        txtCliApellidos.setText("");
-        txtCliCelular.setText("");
-        txtCliEmail.setText("");
-        cmbCliTipo.setSelectedIndex(0);
-        tablaClientes.clearSelection();
+        txtCliDni.setText(""); txtCliDni.setEnabled(true);
+        txtCliNombres.setText(""); txtCliApellidos.setText("");
+        txtCliCelular.setText(""); txtCliEmail.setText("");
+        cmbCliTipo.setSelectedIndex(0); tablaClientes.clearSelection();
     }
 
-    // --- MÉTODOS HABITACIONES ---
     private void cargarDatosHabitaciones() {
         modeloHabitaciones.setRowCount(0);
-        List<Habitacion> lista = servicioHabitacion.listarHabitaciones();
-        for (Habitacion h : lista) {
-            modeloHabitaciones.addRow(new Object[]{h.getIdHabitacion(), h.getIdPiso(), h.getNumero(), h.getTipoTexto()});
+        for (Habitacion h : servicioHabitacion.listarHabitaciones()) {
+            modeloHabitaciones.addRow(new Object[]{h.getIdHabitacion(), h.getIdPiso(), h.getNumero(), obtenerTextoTipoHabitacion(h.getTipo())});
         }
+        actualizarMapaHabitaciones();
     }
-    
+
     private void guardarHabitacion() {
         String id = txtHabId.getText().trim();
         String piso = txtHabPiso.getText().trim();
-        String numero = txtHabNumero.getText().trim();
+        String num = txtHabNumero.getText().trim();
 
-        if (id.isEmpty() || piso.isEmpty() || numero.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Ningún campo puede estar en blanco.", "Aviso", JOptionPane.WARNING_MESSAGE);
+        if (id.isEmpty() || piso.isEmpty() || num.isEmpty() || !esNumerico(id) || !esNumerico(piso) || !esNumerico(num)) {
+            JOptionPane.showMessageDialog(this, "Complete correctamente los campos numéricos.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        if (!esNumerico(id) || !esNumerico(piso) || !esNumerico(numero)) {
-            JOptionPane.showMessageDialog(this, "El ID, ID Piso y Número de habitación deben ser únicamente números.", "Error de Validación", JOptionPane.WARNING_MESSAGE);
-            return;
+        for (Habitacion h : servicioHabitacion.listarHabitaciones()) {
+            if (h.getNumero().equalsIgnoreCase(num)) {
+                JOptionPane.showMessageDialog(this, "Ya existe una habitación registrada con el número " + num + ".", "Error de Validación", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
         }
 
-        int tipo = cmbHabTipo.getSelectedIndex() + 1;
-        Habitacion h = new Habitacion(id, piso, numero, tipo);
-
+        Habitacion h = new Habitacion(id, piso, num, cmbHabTipo.getSelectedIndex() + 1);
         if (servicioHabitacion.guardarHabitacion(h)) {
-            JOptionPane.showMessageDialog(this, "Habitación registrada.");
             cargarDatosHabitaciones();
             actualizarCombosReserva();
             limpiarCamposHabitacion();
-        } else {
-            JOptionPane.showMessageDialog(this, "El ID de la habitación ya existe.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void modificarHabitacion() {
-        if (txtHabId.isEnabled()) {
-            JOptionPane.showMessageDialog(this, "Seleccione una habitación de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
+        if (txtHabId.isEnabled()) return;
+        String idActual = txtHabId.getText().trim();
+        String num = txtHabNumero.getText().trim();
         String piso = txtHabPiso.getText().trim();
-        String numero = txtHabNumero.getText().trim();
 
-        if (piso.isEmpty() || numero.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Ningún campo puede quedar en blanco al modificar.", "Aviso", JOptionPane.WARNING_MESSAGE);
+        if (piso.isEmpty() || num.isEmpty() || !esNumerico(piso) || !esNumerico(num)) {
+            JOptionPane.showMessageDialog(this, "Complete correctamente los campos numéricos.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        if (!esNumerico(piso) || !esNumerico(numero)) {
-            JOptionPane.showMessageDialog(this, "El ID Piso y Número de habitación deben ser únicamente números.", "Error de Validación", JOptionPane.WARNING_MESSAGE);
-            return;
+        for (Habitacion h : servicioHabitacion.listarHabitaciones()) {
+            if (!h.getIdHabitacion().equalsIgnoreCase(idActual) && h.getNumero().equalsIgnoreCase(num)) {
+                JOptionPane.showMessageDialog(this, "Ya existe otra habitación registrada con el número " + num + ".", "Error de Validación", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
         }
 
-        int tipo = cmbHabTipo.getSelectedIndex() + 1;
-        Habitacion h = new Habitacion(txtHabId.getText().trim(), piso, numero, tipo);
-
+        Habitacion h = new Habitacion(idActual, piso, num, cmbHabTipo.getSelectedIndex() + 1);
         if (servicioHabitacion.modificarHabitacion(h)) {
-            JOptionPane.showMessageDialog(this, "Habitación modificada correctamente.");
             cargarDatosHabitaciones();
             actualizarCombosReserva();
             limpiarCamposHabitacion();
-        } else {
-            JOptionPane.showMessageDialog(this, "No se pudo modificar la habitación.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void eliminarHabitacion() {
         int fila = tablaHabitaciones.getSelectedRow();
-        if (fila == -1) {
-            JOptionPane.showMessageDialog(this, "Seleccione una habitación de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        String id = modeloHabitaciones.getValueAt(fila, 0).toString();
-        if (servicioHabitacion.eliminarHabitacion(id)) {
-            JOptionPane.showMessageDialog(this, "Habitación eliminada.");
+        if (fila == -1) return;
+        if (servicioHabitacion.eliminarHabitacion(modeloHabitaciones.getValueAt(fila, 0).toString())) {
             cargarDatosHabitaciones();
             actualizarCombosReserva();
             limpiarCamposHabitacion();
@@ -518,15 +601,10 @@ public class VentanaCliente extends JFrame {
     }
 
     private void limpiarCamposHabitacion() {
-        txtHabId.setText("");
-        txtHabId.setEnabled(true);
-        txtHabPiso.setText("");
-        txtHabNumero.setText("");
-        cmbHabTipo.setSelectedIndex(0);
-        tablaHabitaciones.clearSelection();
+        txtHabId.setText(""); txtHabId.setEnabled(true);
+        txtHabPiso.setText(""); txtHabNumero.setText("");
+        cmbHabTipo.setSelectedIndex(0); tablaHabitaciones.clearSelection();
     }
-
-    // --- MÉTODOS RESERVAS ---
 
     private void cargarDatosReservas() {
         modeloReservas.setRowCount(0);
@@ -547,8 +625,6 @@ public class VentanaCliente extends JFrame {
         actualizarMapaHabitaciones();
     }
 
-
-
     private void actualizarCombosReserva() {
         cmbResCliente.removeAllItems();
         for (Cliente c : servicioCliente.listarClientes()) {
@@ -562,8 +638,6 @@ public class VentanaCliente extends JFrame {
         listHabitacionesMultiples.setModel(listModel);
     }
 
-    
-    
     private boolean validarDisponibilidadHabitaciones(List<String> idsHabitaciones, LocalDate nuevaInicio, LocalDate nuevaSalida, String idReservaExcluida) {
         List<Reserva> reservas = servicioReserva.listarReservas();
         List<DetalleReserva> detalles = servicioDetalleReserva.listarDetalles();
@@ -594,8 +668,8 @@ public class VentanaCliente extends JFrame {
                                         }
                                     }
 
-                                    JOptionPane.showMessageDialog(this,
-                                        "La habitación " + numeroHabitacion + " ya se encuentra reservada del " + r.getFechaInicio() + " al " + r.getFechaSalida() + ".",
+                                    JOptionPane.showMessageDialog(this, 
+                                        "La habitación " + numeroHabitacion + " ya se encuentra reservada del " + r.getFechaInicio() + " al " + r.getFechaSalida() + ".", 
                                         "Conflicto de Disponibilidad", JOptionPane.WARNING_MESSAGE);
                                     return false;
                                 }
@@ -607,8 +681,6 @@ public class VentanaCliente extends JFrame {
         }
         return true;
     }
-
-
 
     private void realizarReserva() {
         String idRes = txtResId.getText().trim();
@@ -624,7 +696,7 @@ public class VentanaCliente extends JFrame {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT);
             LocalDate fInicio = LocalDate.parse(fechaInicioStr, formatter);
-
+            
             LocalDate hoy = LocalDate.now();
             if (fInicio.isBefore(hoy)) {
                 JOptionPane.showMessageDialog(this, "No se pueden registrar reservas en fechas anteriores al día de hoy (" + hoy.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + ").", "Error de Validación", JOptionPane.WARNING_MESSAGE);
@@ -658,7 +730,7 @@ public class VentanaCliente extends JFrame {
             }
 
             String dniCliente = cmbResCliente.getSelectedItem().toString().split(" - ")[0];
-
+            
             boolean esPremium = false;
             for (Cliente c : servicioCliente.listarClientes()) {
                 if (c.getDni().equalsIgnoreCase(dniCliente) && c.getTipo() == 2) {
@@ -681,12 +753,12 @@ public class VentanaCliente extends JFrame {
                     DetalleReserva d = new DetalleReserva(idRes + "-" + contador++, idRes, idHab);
                     servicioDetalleReserva.guardarDetalle(d);
                 }
-
+                
                 String mensajeExito = "Reserva guardada con éxito.\nMonto Total: S/ " + String.format("%.2f", montoTotal) + "\nFecha Salida: " + fechaSalidaStr;
                 if (esPremium) {
                     mensajeExito += "\n(¡Se aplicó 10% de descuento por Cliente Premium!)";
                 }
-
+                
                 JOptionPane.showMessageDialog(this, mensajeExito);
                 cargarDatosReservas();
                 limpiarCamposReserva();
@@ -697,8 +769,6 @@ public class VentanaCliente extends JFrame {
             JOptionPane.showMessageDialog(this, "Fecha inválida (verifique que el día exista en el mes). Use formato DD/MM/AAAA", "Error de Validación", JOptionPane.WARNING_MESSAGE);
         }
     }
-
-
 
     private void modificarReserva() {
         if (txtResId.isEnabled()) {
@@ -719,7 +789,7 @@ public class VentanaCliente extends JFrame {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT);
             LocalDate fInicio = LocalDate.parse(fechaInicioStr, formatter);
-
+            
             LocalDate hoy = LocalDate.now();
             if (fInicio.isBefore(hoy)) {
                 JOptionPane.showMessageDialog(this, "No se pueden modificar reservas a fechas anteriores al día de hoy.", "Error de Validación", JOptionPane.WARNING_MESSAGE);
@@ -753,7 +823,7 @@ public class VentanaCliente extends JFrame {
             }
 
             String dniCliente = cmbResCliente.getSelectedItem().toString().split(" - ")[0];
-
+            
             boolean esPremium = false;
             for (Cliente c : servicioCliente.listarClientes()) {
                 if (c.getDni().equalsIgnoreCase(dniCliente) && c.getTipo() == 2) {
@@ -777,12 +847,12 @@ public class VentanaCliente extends JFrame {
                     DetalleReserva d = new DetalleReserva(idRes + "-" + contador++, idRes, idHab);
                     servicioDetalleReserva.guardarDetalle(d);
                 }
-
+                
                 String mensajeExito = "Reserva modificada con éxito.\nMonto Total: S/ " + String.format("%.2f", montoTotal) + "\nFecha Salida: " + fechaSalidaStr;
                 if (esPremium) {
                     mensajeExito += "\n(¡Se aplicó 10% de descuento por Cliente Premium!)";
                 }
-
+                
                 JOptionPane.showMessageDialog(this, mensajeExito);
                 cargarDatosReservas();
                 limpiarCamposReserva();
@@ -794,11 +864,10 @@ public class VentanaCliente extends JFrame {
         }
     }
 
-
     private void eliminarReserva() {
         int fila = tablaReservas.getSelectedRow();
         if (fila == -1) {
-            JOptionPane.showMessageDialog(this, "Seleccione una reserva de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Seleccione una reserva de la tabla para eliminar.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
         String idRes = modeloReservas.getValueAt(fila, 0).toString();
@@ -813,10 +882,10 @@ public class VentanaCliente extends JFrame {
     private void limpiarCamposReserva() {
         txtResId.setText("");
         txtResId.setEnabled(true);
-        txtResFecha.setText("");
-        txtResMonto.setText("");
+        txtResFechaInicio.setText("");
+        txtResDias.setText("");
+        listHabitacionesMultiples.clearSelection();
         if (cmbResCliente.getItemCount() > 0) cmbResCliente.setSelectedIndex(0);
-        if (cmbResHabitacion.getItemCount() > 0) cmbResHabitacion.setSelectedIndex(0);
         cmbResMetodoPago.setSelectedIndex(0);
         tablaReservas.clearSelection();
     }
