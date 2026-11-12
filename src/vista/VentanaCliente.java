@@ -544,7 +544,8 @@ public class VentanaCliente extends JFrame {
         List<Cliente> clientes = servicioCliente.listarClientes();
         for (Cliente c : clientes) {
             cmbResCliente.addItem(c.getDni() + " - " + c.getNombres() + " " + c.getApellidos());
-        }
+    }
+
 
         cmbResHabitacion.removeAllItems();
         List<Habitacion> habitaciones = servicioHabitacion.listarHabitaciones();
