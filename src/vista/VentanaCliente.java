@@ -4,11 +4,18 @@ import modelo.*;
 import servicio.*;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class VentanaCliente extends JFrame {
     private ServicioCliente servicioCliente;
@@ -553,50 +560,142 @@ public class VentanaCliente extends JFrame {
             cmbResHabitacion.addItem(h.getIdHabitacion() + " (Hab. " + h.getNumero() + ")");
         }
     }
+    
+    
+    private boolean validarDisponibilidadHabitaciones(List<String> idsHabitaciones, LocalDate nuevaInicio, LocalDate nuevaSalida, String idReservaExcluida) {
+        List<Reserva> reservas = servicioReserva.listarReservas();
+        List<DetalleReserva> detalles = servicioDetalleReserva.listarDetalles();
+        List<Habitacion> habitaciones = servicioHabitacion.listarHabitaciones();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+        for (Reserva r : reservas) {
+            if (idReservaExcluida != null && r.getIdReserva().equalsIgnoreCase(idReservaExcluida)) {
+                continue;
+            }
+
+            try {
+                LocalDate rInicio = LocalDate.parse(r.getFechaInicio(), formatter);
+                LocalDate rSalida = LocalDate.parse(r.getFechaSalida(), formatter);
+
+                boolean hayCruceFechas = nuevaInicio.isBefore(rSalida) && nuevaSalida.isAfter(rInicio);
+
+                if (hayCruceFechas) {
+                    for (DetalleReserva d : detalles) {
+                        if (d.getIdReserva().equalsIgnoreCase(r.getIdReserva())) {
+                            for (String idHabSel : idsHabitaciones) {
+                                if (d.getIdHabitacion().equalsIgnoreCase(idHabSel)) {
+                                    String numeroHabitacion = idHabSel;
+                                    for (Habitacion hab : habitaciones) {
+                                        if (hab.getIdHabitacion().equalsIgnoreCase(idHabSel)) {
+                                            numeroHabitacion = hab.getNumero();
+                                            break;
+                                        }
+                                    }
+
+                                    JOptionPane.showMessageDialog(this,
+                                        "La habitación " + numeroHabitacion + " ya se encuentra reservada del " + r.getFechaInicio() + " al " + r.getFechaSalida() + ".",
+                                        "Conflicto de Disponibilidad", JOptionPane.WARNING_MESSAGE);
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+        return true;
+    }
+
+
 
     private void realizarReserva() {
         String idRes = txtResId.getText().trim();
-        String fecha = txtResFecha.getText().trim();
-        String montoStr = txtResMonto.getText().trim();
+        String fechaInicioStr = txtResFechaInicio.getText().trim();
+        String diasStr = txtResDias.getText().trim();
+        List<String> seleccionadas = listHabitacionesMultiples.getSelectedValuesList();
 
-        if (idRes.isEmpty() || fecha.isEmpty() || montoStr.isEmpty() || 
-            cmbResCliente.getItemCount() == 0 || cmbResHabitacion.getItemCount() == 0) {
-            JOptionPane.showMessageDialog(this, "Ningún campo puede estar en blanco.", "Aviso", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        if (!esNumerico(idRes)) {
-            JOptionPane.showMessageDialog(this, "El ID de la reserva debe ser estrictamente numérico.", "Error de Validación", JOptionPane.WARNING_MESSAGE);
+        if (idRes.isEmpty() || fechaInicioStr.isEmpty() || diasStr.isEmpty() || seleccionadas.isEmpty() || !esNumerico(idRes) || !esNumerico(diasStr)) {
+            JOptionPane.showMessageDialog(this, "Complete todos los campos y seleccione al menos una habitación.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         try {
-            double monto = Double.parseDouble(montoStr);
-            if (monto < 0) {
-                JOptionPane.showMessageDialog(this, "El monto no puede ser un número negativo.", "Error de Validación", JOptionPane.WARNING_MESSAGE);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT);
+            LocalDate fInicio = LocalDate.parse(fechaInicioStr, formatter);
+
+            LocalDate hoy = LocalDate.now();
+            if (fInicio.isBefore(hoy)) {
+                JOptionPane.showMessageDialog(this, "No se pueden registrar reservas en fechas anteriores al día de hoy (" + hoy.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + ").", "Error de Validación", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            String dniSeleccionado = cmbResCliente.getSelectedItem().toString().split(" - ")[0];
-            String idHabSeleccionada = cmbResHabitacion.getSelectedItem().toString().split(" ")[0];
+            int dias = Integer.parseInt(diasStr);
+            if (dias <= 0) {
+                JOptionPane.showMessageDialog(this, "Los días de estadía deben ser mayores a 0.", "Error de Validación", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            LocalDate fSalida = fInicio.plusDays(dias);
+            String fechaSalidaStr = fSalida.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+
+            List<String> idsHabitaciones = seleccionadas.stream().map(s -> s.split(" ")[0]).collect(Collectors.toList());
+
+            if (!validarDisponibilidadHabitaciones(idsHabitaciones, fInicio, fSalida, null)) {
+                return;
+            }
+
+            double montoTotal = 0.0;
+            List<Habitacion> todasHabitaciones = servicioHabitacion.listarHabitaciones();
+
+            for (String idHab : idsHabitaciones) {
+                for (Habitacion h : todasHabitaciones) {
+                    if (h.getIdHabitacion().equalsIgnoreCase(idHab)) {
+                        montoTotal += h.getPrecioNoche() * dias;
+                        break;
+                    }
+                }
+            }
+
+            String dniCliente = cmbResCliente.getSelectedItem().toString().split(" - ")[0];
+
+            boolean esPremium = false;
+            for (Cliente c : servicioCliente.listarClientes()) {
+                if (c.getDni().equalsIgnoreCase(dniCliente) && c.getTipo() == 2) {
+                    esPremium = true;
+                    break;
+                }
+            }
+
+            if (esPremium) {
+                montoTotal = montoTotal * 0.90;
+            }
+
             int metodoPago = cmbResMetodoPago.getSelectedIndex() + 1;
 
-            Reserva r = new Reserva(idRes, fecha, dniSeleccionado, monto, metodoPago);
-            DetalleReserva d = new DetalleReserva(idRes, idRes, idHabSeleccionada);
+            Reserva r = new Reserva(idRes, fechaInicioStr, dias, fechaSalidaStr, dniCliente, montoTotal, metodoPago);
 
-            boolean resGuardada = servicioReserva.guardarReserva(r);
-            if (resGuardada) {
-                servicioDetalleReserva.guardarDetalle(d);
-                JOptionPane.showMessageDialog(this, "Reserva realizada con éxito.");
+            if (servicioReserva.guardarReserva(r)) {
+                int contador = 1;
+                for (String idHab : idsHabitaciones) {
+                    DetalleReserva d = new DetalleReserva(idRes + "-" + contador++, idRes, idHab);
+                    servicioDetalleReserva.guardarDetalle(d);
+                }
+
+                String mensajeExito = "Reserva guardada con éxito.\nMonto Total: S/ " + String.format("%.2f", montoTotal) + "\nFecha Salida: " + fechaSalidaStr;
+                if (esPremium) {
+                    mensajeExito += "\n(¡Se aplicó 10% de descuento por Cliente Premium!)";
+                }
+
+                JOptionPane.showMessageDialog(this, mensajeExito);
                 cargarDatosReservas();
                 limpiarCamposReserva();
             } else {
                 JOptionPane.showMessageDialog(this, "El ID de la reserva ya existe.", "Error", JOptionPane.ERROR_MESSAGE);
             }
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "Ingrese un monto numérico válido.", "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (DateTimeParseException e) {
+            JOptionPane.showMessageDialog(this, "Fecha inválida (verifique que el día exista en el mes). Use formato DD/MM/AAAA", "Error de Validación", JOptionPane.WARNING_MESSAGE);
         }
     }
+
 
     private void modificarReserva() {
         if (txtResId.isEnabled()) {
