@@ -11,8 +11,8 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 
 public class VentanaCliente extends JFrame {
-    private ServicioPersonaHabitacion servicioPersonaHabitacion;
-    private ServicioReservaDetalle servicioReservaDetalle;
+    private ServicioCliente servicioPersonaHabitacion;
+    private ServicioReserva servicioReservaDetalle;
 
     // Componentes Clientes
     private JTextField txtCliDni, txtCliNombres, txtCliApellidos, txtCliCelular, txtCliEmail;
@@ -33,8 +33,8 @@ public class VentanaCliente extends JFrame {
     private DefaultTableModel modeloReservas;
 
     public VentanaCliente() {
-        servicioPersonaHabitacion = new ServicioPersonaHabitacion();
-        servicioReservaDetalle = new ServicioReservaDetalle();
+        servicioPersonaHabitacion = new ServicioCliente();
+        servicioReservaDetalle = new ServicioReserva();
         
         setTitle("Sistema de Gestión de Reservas de Hotel");
         setSize(900, 680);
