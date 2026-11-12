@@ -331,7 +331,96 @@ public class VentanaCliente extends JFrame {
         cmbCliTipo.setSelectedIndex(0);
         tablaClientes.clearSelection();
     }
-    
+private void cargarDatosHabitaciones() {
+        modeloHabitaciones.setRowCount(0);
+        List<Habitacion> lista = servicioPersonaHabitacion.listarHabitaciones();
+        for (Habitacion h : lista) {
+            modeloHabitaciones.addRow(new Object[]{h.getIdHabitacion(), h.getIdPiso(), h.getNumero(), h.getTipoTexto()});
+        }
+    }
+
+    private void guardarHabitacion() {
+        String id = txtHabId.getText().trim();
+        String piso = txtHabPiso.getText().trim();
+        String numero = txtHabNumero.getText().trim();
+
+        if (id.isEmpty() || piso.isEmpty() || numero.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Ningún campo puede estar en blanco.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (!esNumerico(id) || !esNumerico(piso) || !esNumerico(numero)) {
+            JOptionPane.showMessageDialog(this, "El ID, ID Piso y Número de habitación deben ser únicamente números.", "Error de Validación", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int tipo = cmbHabTipo.getSelectedIndex() + 1;
+        Habitacion h = new Habitacion(id, piso, numero, tipo);
+
+        if (servicioPersonaHabitacion.guardarHabitacion(h)) {
+            JOptionPane.showMessageDialog(this, "Habitación registrada.");
+            cargarDatosHabitaciones();
+            actualizarCombosReserva();
+            limpiarCamposHabitacion();
+        } else {
+            JOptionPane.showMessageDialog(this, "El ID de la habitación ya existe.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void modificarHabitacion() {
+        if (txtHabId.isEnabled()) {
+            JOptionPane.showMessageDialog(this, "Seleccione una habitación de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String piso = txtHabPiso.getText().trim();
+        String numero = txtHabNumero.getText().trim();
+
+        if (piso.isEmpty() || numero.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Ningún campo puede quedar en blanco al modificar.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (!esNumerico(piso) || !esNumerico(numero)) {
+            JOptionPane.showMessageDialog(this, "El ID Piso y Número de habitación deben ser únicamente números.", "Error de Validación", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int tipo = cmbHabTipo.getSelectedIndex() + 1;
+        Habitacion h = new Habitacion(txtHabId.getText().trim(), piso, numero, tipo);
+
+        if (servicioPersonaHabitacion.modificarHabitacion(h)) {
+            JOptionPane.showMessageDialog(this, "Habitación modificada correctamente.");
+            cargarDatosHabitaciones();
+            actualizarCombosReserva();
+            limpiarCamposHabitacion();
+        } else {
+            JOptionPane.showMessageDialog(this, "No se pudo modificar la habitación.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void eliminarHabitacion() {
+        int fila = tablaHabitaciones.getSelectedRow();
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Seleccione una habitación de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String id = modeloHabitaciones.getValueAt(fila, 0).toString();
+        if (servicioPersonaHabitacion.eliminarHabitacion(id)) {
+            JOptionPane.showMessageDialog(this, "Habitación eliminada.");
+            cargarDatosHabitaciones();
+            actualizarCombosReserva();
+            limpiarCamposHabitacion();
+        }
+    }
+
+    private void limpiarCamposHabitacion() {
+        txtHabId.setText("");
+        txtHabId.setEnabled(true);
+        txtHabPiso.setText("");
+        txtHabNumero.setText("");
+        cmbHabTipo.setSelectedIndex(0);
+        tablaHabitaciones.clearSelection();
+    }
     
     private void cargarDatosReservas() {
         modeloReservas.setRowCount(0);
