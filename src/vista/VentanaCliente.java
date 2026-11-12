@@ -417,7 +417,7 @@ public class VentanaCliente extends JFrame {
             modeloHabitaciones.addRow(new Object[]{h.getIdHabitacion(), h.getIdPiso(), h.getNumero(), h.getTipoTexto()});
         }
     }
-
+    
     private void guardarHabitacion() {
         String id = txtHabId.getText().trim();
         String piso = txtHabPiso.getText().trim();
