@@ -3,9 +3,8 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/ferna/Documents/GitHub/Proyecto-POO-Reservas-de-Hotel/src/modelo/Habitacion.java</file>
-            <file>file:/C:/Users/ferna/Documents/GitHub/Proyecto-POO-Reservas-de-Hotel/src/servicio/ServicioHabitacion.java</file>
-            <file>file:/C:/Users/ferna/Documents/GitHub/Proyecto-POO-Reservas-de-Hotel/src/vista/VentanaCliente.java</file>
+            <file>file:/C:/Users/LENOVO/Documents/GitHub/Proyecto-POO-Reservas-de-Hotel/src/modelo/Reserva.java</file>
+            <file>file:/C:/Users/LENOVO/Documents/GitHub/Proyecto-POO-Reservas-de-Hotel/src/servicio/ServicioReserva.java</file>
         </group>
     </open-files>
 </project-private>

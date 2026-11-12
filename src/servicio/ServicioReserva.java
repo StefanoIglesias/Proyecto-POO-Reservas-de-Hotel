@@ -17,8 +17,8 @@ public class ServicioReserva {
             String linea;
             while ((linea = br.readLine()) != null) {
                 String[] p = linea.split(";");
-                if (p.length == 5) {
-                    lista.add(new Reserva(p[0], p[1], p[2], Double.parseDouble(p[3]), Integer.parseInt(p[4])));
+                if (p.length == 7) {
+                    lista.add(new Reserva(p[0], p[1], Integer.parseInt(p[2]), p[3], p[4], Double.parseDouble(p[5]), Integer.parseInt(p[6])));
                 }
             }
         } catch (IOException e) {
@@ -51,18 +51,14 @@ public class ServicioReserva {
                 break;
             }
         }
-        if (modificado) {
-            reescribirArchivo(lista);
-        }
+        if (modificado) reescribirArchivo(lista);
         return modificado;
     }
 
     public boolean eliminarReserva(String idReserva) {
         List<Reserva> lista = listarReservas();
         boolean eliminado = lista.removeIf(r -> r.getIdReserva().equalsIgnoreCase(idReserva));
-        if (eliminado) {
-            reescribirArchivo(lista);
-        }
+        if (eliminado) reescribirArchivo(lista);
         return eliminado;
     }
 
@@ -72,7 +68,7 @@ public class ServicioReserva {
                 pw.println(r.toLineaTexto());
             }
         } catch (IOException e) {
-            System.err.println("Error al actualizar archivo de reservas: " + e.getMessage());
+            System.err.println("Error al actualizar reservas: " + e.getMessage());
         }
     }
 }
