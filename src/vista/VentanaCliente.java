@@ -879,6 +879,7 @@ public class VentanaCliente extends JFrame {
         }
     }
 
+
     private void limpiarCamposReserva() {
         txtResId.setText("");
         txtResId.setEnabled(true);
@@ -889,6 +890,7 @@ public class VentanaCliente extends JFrame {
         cmbResMetodoPago.setSelectedIndex(0);
         tablaReservas.clearSelection();
     }
+
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new VentanaCliente().setVisible(true));
