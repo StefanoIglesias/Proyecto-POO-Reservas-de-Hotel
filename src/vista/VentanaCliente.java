@@ -233,13 +233,14 @@ public class VentanaCliente extends JFrame {
         List<Cliente> clientes = servicioPersonaHabitacion.listarClientes();
         for (Cliente c : clientes) {
             cmbResCliente.addItem(c.getDni() + " - " + c.getNombres() + " " + c.getApellidos());
-        }
+    }
 
-        cmbResHabitacion.removeAllItems();
-        //List<Habitacion> habitaciones = servicioPersonaHabitacion.listarHabitaciones();
-        //for (Habitacion h : habitaciones) {
-        //    cmbResHabitacion.addItem(h.getIdHabitacion() + " (Hab. " + h.getNumero() + ")");
-        }
+    cmbResHabitacion.removeAllItems();
+    List<Habitacion> habitaciones = servicioPersonaHabitacion.listarHabitaciones();
+    for (Habitacion h : habitaciones) {
+        cmbResHabitacion.addItem(h.getIdHabitacion() + " (Hab. " + h.getNumero() + ")");
+    }
+}
     
 
     
