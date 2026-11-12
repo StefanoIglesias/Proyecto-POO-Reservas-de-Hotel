@@ -218,10 +218,10 @@ public class VentanaCliente extends JFrame {
         return panel;
     }
 
+
     private JPanel crearPanelReservas() {
         JPanel panelPrincipal = new JPanel(new BorderLayout());
 
-        // Panel superior con formulario compacto de altura fija
         JPanel pForm = new JPanel(new GridBagLayout());
         pForm.setBorder(BorderFactory.createTitledBorder("Gestión de Reservas Múltiples"));
         GridBagConstraints gbc = new GridBagConstraints();
@@ -257,12 +257,10 @@ public class VentanaCliente extends JFrame {
         gbc.gridx = 0; gbc.gridy = row; pForm.add(new JLabel("Método de Pago:"), gbc);
         gbc.gridx = 1; cmbResMetodoPago = new JComboBox<>(new String[]{"1.- Yape", "2.- Plin", "3.- Transferencia", "4.- Efectivo"}); pForm.add(cmbResMetodoPago, gbc);
 
-        // Envolvemos el formulario en un JScrollPane para evitar problemas si la ventana es pequeña
         JScrollPane scrollForm = new JScrollPane(pForm);
         scrollForm.setPreferredSize(new Dimension(1000, 260));
         panelPrincipal.add(scrollForm, BorderLayout.NORTH);
 
-        // Panel central: Tabla de Reservas visible y con scroll
         modeloReservas = new DefaultTableModel(new String[]{"ID Reserva", "F. Inicio", "Días", "F. Salida", "DNI Cliente", "Habitaciones", "Monto Total", "Pago"}, 0) {
             @Override
             public boolean isCellEditable(int r, int c) { return false; }
@@ -284,6 +282,50 @@ public class VentanaCliente extends JFrame {
         pBotones.add(btnLimpiar);
         pBotones.add(btnRefrescar);
         panelPrincipal.add(pBotones, BorderLayout.SOUTH);
+
+        tablaReservas.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int fila = tablaReservas.getSelectedRow();
+                if (fila != -1) {
+                    txtResId.setText(modeloReservas.getValueAt(fila, 0).toString());
+                    txtResId.setEnabled(false);
+                    txtResFechaInicio.setText(modeloReservas.getValueAt(fila, 1).toString());
+                    txtResDias.setText(modeloReservas.getValueAt(fila, 2).toString());
+
+                    String dniTabla = modeloReservas.getValueAt(fila, 4).toString();
+                    for (int i = 0; i < cmbResCliente.getItemCount(); i++) {
+                        if (cmbResCliente.getItemAt(i).startsWith(dniTabla)) {
+                            cmbResCliente.setSelectedIndex(i);
+                            break;
+                        }
+                    }
+
+                    String habsStr = modeloReservas.getValueAt(fila, 5).toString();
+                    String[] habsIds = habsStr.split("\\s+");
+                    listHabitacionesMultiples.clearSelection();
+                    ListModel<String> model = listHabitacionesMultiples.getModel();
+                    for (int i = 0; i < model.getSize(); i++) {
+                        String elemento = model.getElementAt(i);
+                        String idHabElem = elemento.split(" ")[0];
+                        for (String idH : habsIds) {
+                            if (idHabElem.equalsIgnoreCase(idH)) {
+                                listHabitacionesMultiples.addSelectionInterval(i, i);
+                                break;
+                            }
+                        }
+                    }
+
+                    String pagoTabla = modeloReservas.getValueAt(fila, 7).toString();
+                    for (int i = 0; i < cmbResMetodoPago.getItemCount(); i++) {
+                        if (cmbResMetodoPago.getItemAt(i).contains(pagoTabla)) {
+                            cmbResMetodoPago.setSelectedIndex(i);
+                            break;
+                        }
+                    }
+                }
+            }
+        });
 
         btnGuardar.addActionListener(e -> realizarReserva());
         btnModificar.addActionListener(e -> modificarReserva());
