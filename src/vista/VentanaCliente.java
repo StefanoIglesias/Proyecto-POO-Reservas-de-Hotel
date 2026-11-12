@@ -11,8 +11,10 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 
 public class VentanaCliente extends JFrame {
-    private ServicioPersonaHabitacion servicioPersonaHabitacion;
-    private ServicioReservaDetalle servicioReservaDetalle;
+    private ServicioCliente servicioCliente;
+    private ServicioHabitacion servicioHabitacion;
+    private ServicioReserva servicioReserva;
+    private ServicioDetalleReserva servicioDetalleReserva;
 
     // Componentes Clientes
     private JTextField txtCliDni, txtCliNombres, txtCliApellidos, txtCliCelular, txtCliEmail;
@@ -33,8 +35,10 @@ public class VentanaCliente extends JFrame {
     private DefaultTableModel modeloReservas;
 
     public VentanaCliente() {
-        servicioPersonaHabitacion = new ServicioPersonaHabitacion();
-        servicioReservaDetalle = new ServicioReservaDetalle();
+        servicioCliente = new ServicioCliente();
+        servicioHabitacion = new ServicioHabitacion();
+        servicioReserva = new ServicioReserva();
+        servicioDetalleReserva = new ServicioDetalleReserva();
         
         setTitle("Sistema de Gestión de Reservas de Hotel");
         setSize(900, 680);
@@ -43,11 +47,13 @@ public class VentanaCliente extends JFrame {
 
         JTabbedPane pestanas = new JTabbedPane();
         pestanas.addTab("Gestión de Clientes", crearPanelClientes());
+        pestanas.addTab("Gestión de Habitaciones", crearPanelHabitaciones());
         pestanas.addTab("Registro de Reservas", crearPanelReservas());
-        
+
         add(pestanas);
         
         cargarDatosClientes();
+        cargarDatosHabitaciones();
         cargarDatosReservas();
         actualizarCombosReserva();
     }
@@ -74,7 +80,7 @@ public class VentanaCliente extends JFrame {
         txtCliApellidos = new JTextField();
         pForm.add(txtCliApellidos);
 
-        pForm.add(new JLabel("Celular (9 dígitos):"));
+        pForm.add(new JLabel("Celular:"));
         txtCliCelular = new JTextField();
         pForm.add(txtCliCelular);
 
@@ -130,8 +136,79 @@ public class VentanaCliente extends JFrame {
 
         return panel;
     }
-    
-    
+
+    private JPanel crearPanelHabitaciones() {
+        JPanel panel = new JPanel(new BorderLayout());
+
+        JPanel pForm = new JPanel(new GridLayout(4, 2, 5, 5));
+        pForm.setBorder(BorderFactory.createTitledBorder("Datos de la Habitación"));
+
+        pForm.add(new JLabel("ID Habitación (Numérico):"));
+        txtHabId = new JTextField();
+        pForm.add(txtHabId);
+
+        pForm.add(new JLabel("ID Piso (Numérico):"));
+        txtHabPiso = new JTextField();
+        pForm.add(txtHabPiso);
+
+        pForm.add(new JLabel("Número de Habitación (Numérico):"));
+        txtHabNumero = new JTextField();
+        pForm.add(txtHabNumero);
+
+        pForm.add(new JLabel("Tipo de Habitación:"));
+        cmbHabTipo = new JComboBox<>(new String[]{"1.- Personal", "2.- Doble", "3.- Matrimonial", "4.- Suite", "5.- Triple"});
+        pForm.add(cmbHabTipo);
+
+        panel.add(pForm, BorderLayout.NORTH);
+
+        modeloHabitaciones = new DefaultTableModel(new String[]{"ID", "Piso", "Número", "Tipo"}, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) { return false; }
+        };
+        tablaHabitaciones = new JTable(modeloHabitaciones);
+        panel.add(new JScrollPane(tablaHabitaciones), BorderLayout.CENTER);
+
+        JPanel pBotones = new JPanel();
+        JButton btnGuardar = new JButton("Guardar");
+        JButton btnModificar = new JButton("Modificar");
+        JButton btnEliminar = new JButton("Eliminar");
+        JButton btnLimpiar = new JButton("Limpiar");
+
+        pBotones.add(btnGuardar);
+        pBotones.add(btnModificar);
+        pBotones.add(btnEliminar);
+        pBotones.add(btnLimpiar);
+        panel.add(pBotones, BorderLayout.SOUTH);
+
+        tablaHabitaciones.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int fila = tablaHabitaciones.getSelectedRow();
+                if (fila != -1) {
+                    txtHabId.setText(modeloHabitaciones.getValueAt(fila, 0).toString());
+                    txtHabId.setEnabled(false);
+                    txtHabPiso.setText(modeloHabitaciones.getValueAt(fila, 1).toString());
+                    txtHabNumero.setText(modeloHabitaciones.getValueAt(fila, 2).toString());
+                    
+                    String tipoStr = modeloHabitaciones.getValueAt(fila, 3).toString();
+                    for (int i = 0; i < cmbHabTipo.getItemCount(); i++) {
+                        if (cmbHabTipo.getItemAt(i).contains(tipoStr)) {
+                            cmbHabTipo.setSelectedIndex(i);
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+
+        btnGuardar.addActionListener(e -> guardarHabitacion());
+        btnModificar.addActionListener(e -> modificarHabitacion());
+        btnEliminar.addActionListener(e -> eliminarHabitacion());
+        btnLimpiar.addActionListener(e -> limpiarCamposHabitacion());
+
+        return panel;
+    }
+
     private JPanel crearPanelReservas() {
         JPanel panel = new JPanel(new BorderLayout());
 
@@ -193,7 +270,7 @@ public class VentanaCliente extends JFrame {
                     txtResId.setText(modeloReservas.getValueAt(fila, 0).toString());
                     txtResId.setEnabled(false);
                     txtResFecha.setText(modeloReservas.getValueAt(fila, 1).toString());
-
+                    
                     String dniTabla = modeloReservas.getValueAt(fila, 2).toString();
                     for (int i = 0; i < cmbResCliente.getItemCount(); i++) {
                         if (cmbResCliente.getItemAt(i).startsWith(dniTabla)) {
@@ -232,10 +309,10 @@ public class VentanaCliente extends JFrame {
         return panel;
     }
 
-
+    // --- MÉTODOS CLIENTES ---
     private void cargarDatosClientes() {
         modeloClientes.setRowCount(0);
-        List<Cliente> lista = servicioPersonaHabitacion.listarClientes();
+        List<Cliente> lista = servicioCliente.listarClientes();
         for (Cliente c : lista) {
             String tipoTxt = (c.getTipo() == 2) ? "Premium" : "Normal";
             modeloClientes.addRow(new Object[]{c.getDni(), c.getNombres(), c.getApellidos(), c.getCelular(), c.getEmail(), tipoTxt});
@@ -266,7 +343,7 @@ public class VentanaCliente extends JFrame {
         int tipo = cmbCliTipo.getSelectedIndex() == 1 ? 2 : 1;
         Cliente c = new Cliente(dni, txtCliNombres.getText().trim(), txtCliApellidos.getText().trim(), celular, txtCliEmail.getText().trim(), tipo);
         
-        if (servicioPersonaHabitacion.guardarCliente(c)) {
+        if (servicioCliente.guardarCliente(c)) {
             JOptionPane.showMessageDialog(this, "Cliente guardado exitosamente.");
             cargarDatosClientes();
             actualizarCombosReserva();
@@ -296,7 +373,7 @@ public class VentanaCliente extends JFrame {
         int tipo = cmbCliTipo.getSelectedIndex() == 1 ? 2 : 1;
         Cliente c = new Cliente(txtCliDni.getText().trim(), txtCliNombres.getText().trim(), txtCliApellidos.getText().trim(), celular, txtCliEmail.getText().trim(), tipo);
         
-        if (servicioPersonaHabitacion.modificarCliente(c)) {
+        if (servicioCliente.modificarCliente(c)) {
             JOptionPane.showMessageDialog(this, "Cliente modificado correctamente.");
             cargarDatosClientes();
             actualizarCombosReserva();
@@ -313,7 +390,7 @@ public class VentanaCliente extends JFrame {
             return;
         }
         String dni = modeloClientes.getValueAt(fila, 0).toString();
-        if (servicioPersonaHabitacion.eliminarCliente(dni)) {
+        if (servicioCliente.eliminarCliente(dni)) {
             JOptionPane.showMessageDialog(this, "Cliente eliminado.");
             cargarDatosClientes();
             actualizarCombosReserva();
@@ -331,9 +408,11 @@ public class VentanaCliente extends JFrame {
         cmbCliTipo.setSelectedIndex(0);
         tablaClientes.clearSelection();
     }
-private void cargarDatosHabitaciones() {
+
+    // --- MÉTODOS HABITACIONES ---
+    private void cargarDatosHabitaciones() {
         modeloHabitaciones.setRowCount(0);
-        List<Habitacion> lista = servicioPersonaHabitacion.listarHabitaciones();
+        List<Habitacion> lista = servicioHabitacion.listarHabitaciones();
         for (Habitacion h : lista) {
             modeloHabitaciones.addRow(new Object[]{h.getIdHabitacion(), h.getIdPiso(), h.getNumero(), h.getTipoTexto()});
         }
@@ -357,7 +436,7 @@ private void cargarDatosHabitaciones() {
         int tipo = cmbHabTipo.getSelectedIndex() + 1;
         Habitacion h = new Habitacion(id, piso, numero, tipo);
 
-        if (servicioPersonaHabitacion.guardarHabitacion(h)) {
+        if (servicioHabitacion.guardarHabitacion(h)) {
             JOptionPane.showMessageDialog(this, "Habitación registrada.");
             cargarDatosHabitaciones();
             actualizarCombosReserva();
@@ -388,7 +467,7 @@ private void cargarDatosHabitaciones() {
         int tipo = cmbHabTipo.getSelectedIndex() + 1;
         Habitacion h = new Habitacion(txtHabId.getText().trim(), piso, numero, tipo);
 
-        if (servicioPersonaHabitacion.modificarHabitacion(h)) {
+        if (servicioHabitacion.modificarHabitacion(h)) {
             JOptionPane.showMessageDialog(this, "Habitación modificada correctamente.");
             cargarDatosHabitaciones();
             actualizarCombosReserva();
@@ -405,7 +484,7 @@ private void cargarDatosHabitaciones() {
             return;
         }
         String id = modeloHabitaciones.getValueAt(fila, 0).toString();
-        if (servicioPersonaHabitacion.eliminarHabitacion(id)) {
+        if (servicioHabitacion.eliminarHabitacion(id)) {
             JOptionPane.showMessageDialog(this, "Habitación eliminada.");
             cargarDatosHabitaciones();
             actualizarCombosReserva();
@@ -421,11 +500,12 @@ private void cargarDatosHabitaciones() {
         cmbHabTipo.setSelectedIndex(0);
         tablaHabitaciones.clearSelection();
     }
-    
+
+    // --- MÉTODOS RESERVAS ---
     private void cargarDatosReservas() {
         modeloReservas.setRowCount(0);
-        List<Reserva> reservas = servicioReservaDetalle.listarReservas();
-        List<DetalleReserva> detalles = servicioReservaDetalle.listarDetalles();
+        List<Reserva> reservas = servicioReserva.listarReservas();
+        List<DetalleReserva> detalles = servicioDetalleReserva.listarDetalles();
 
         for (Reserva r : reservas) {
             String habId = "N/A";
@@ -443,18 +523,18 @@ private void cargarDatosHabitaciones() {
 
     private void actualizarCombosReserva() {
         cmbResCliente.removeAllItems();
-        List<Cliente> clientes = servicioPersonaHabitacion.listarClientes();
+        List<Cliente> clientes = servicioCliente.listarClientes();
         for (Cliente c : clientes) {
             cmbResCliente.addItem(c.getDni() + " - " + c.getNombres() + " " + c.getApellidos());
         }
 
         cmbResHabitacion.removeAllItems();
-        //List<Habitacion> habitaciones = servicioPersonaHabitacion.listarHabitaciones();
-        //for (Habitacion h : habitaciones) {
-        //    cmbResHabitacion.addItem(h.getIdHabitacion() + " (Hab. " + h.getNumero() + ")");
+        List<Habitacion> habitaciones = servicioHabitacion.listarHabitaciones();
+        for (Habitacion h : habitaciones) {
+            cmbResHabitacion.addItem(h.getIdHabitacion() + " (Hab. " + h.getNumero() + ")");
         }
-    
-    
+    }
+
     private void realizarReserva() {
         String idRes = txtResId.getText().trim();
         String fecha = txtResFecha.getText().trim();
@@ -485,7 +565,9 @@ private void cargarDatosHabitaciones() {
             Reserva r = new Reserva(idRes, fecha, dniSeleccionado, monto, metodoPago);
             DetalleReserva d = new DetalleReserva(idRes, idRes, idHabSeleccionada);
 
-            if (servicioReservaDetalle.registrarReservaCompleta(r, d)) {
+            boolean resGuardada = servicioReserva.guardarReserva(r);
+            if (resGuardada) {
+                servicioDetalleReserva.guardarDetalle(d);
                 JOptionPane.showMessageDialog(this, "Reserva realizada con éxito.");
                 cargarDatosReservas();
                 limpiarCamposReserva();
@@ -496,8 +578,7 @@ private void cargarDatosHabitaciones() {
             JOptionPane.showMessageDialog(this, "Ingrese un monto numérico válido.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-    
-    
+
     private void modificarReserva() {
         if (txtResId.isEnabled()) {
             JOptionPane.showMessageDialog(this, "Seleccione una reserva de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
@@ -523,9 +604,10 @@ private void cargarDatosHabitaciones() {
             int metodoPago = cmbResMetodoPago.getSelectedIndex() + 1;
 
             Reserva r = new Reserva(txtResId.getText().trim(), fecha, dniSeleccionado, monto, metodoPago);
-            DetalleReserva d = new DetalleReserva(txtResId.getText().trim(), txtResId.getText().trim(), idHabSeleccionada);
 
-            if (servicioReservaDetalle.modificarReservaCompleta(r, d)) {
+            boolean resModificada = servicioReserva.modificarReserva(r);
+            if (resModificada) {
+                servicioDetalleReserva.modificarDetallePorReserva(txtResId.getText().trim(), idHabSeleccionada);
                 JOptionPane.showMessageDialog(this, "Reserva modificada correctamente.");
                 cargarDatosReservas();
                 limpiarCamposReserva();
@@ -536,7 +618,7 @@ private void cargarDatosHabitaciones() {
             JOptionPane.showMessageDialog(this, "Ingrese un monto numérico válido.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-    
+
     private void eliminarReserva() {
         int fila = tablaReservas.getSelectedRow();
         if (fila == -1) {
@@ -544,14 +626,14 @@ private void cargarDatosHabitaciones() {
             return;
         }
         String idRes = modeloReservas.getValueAt(fila, 0).toString();
-        if (servicioReservaDetalle.eliminarReserva(idRes)) {
+        if (servicioReserva.eliminarReserva(idRes)) {
+            servicioDetalleReserva.eliminarDetallePorReserva(idRes);
             JOptionPane.showMessageDialog(this, "Reserva eliminada.");
             cargarDatosReservas();
             limpiarCamposReserva();
         }
     }
-    
-    
+
     private void limpiarCamposReserva() {
         txtResId.setText("");
         txtResId.setEnabled(true);
