@@ -5,7 +5,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ServicioPersonaHabitacion {
+public class ServicioCliente {
     private final String ARCHIVO_CLIENTES = "clientes.txt";
 
     public List<Cliente> listarClientes() {
@@ -51,22 +51,28 @@ public class ServicioPersonaHabitacion {
                 break;
             }
         }
-        if (modificado) reescribirClientes(lista);
+        if (modificado) {
+            reescribirArchivo(lista);
+        }
         return modificado;
     }
 
     public boolean eliminarCliente(String dni) {
         List<Cliente> lista = listarClientes();
         boolean eliminado = lista.removeIf(c -> c.getDni().equalsIgnoreCase(dni));
-        if (eliminado) reescribirClientes(lista);
+        if (eliminado) {
+            reescribirArchivo(lista);
+        }
         return eliminado;
     }
 
-    private void reescribirClientes(List<Cliente> lista) {
+    private void reescribirArchivo(List<Cliente> lista) {
         try (PrintWriter pw = new PrintWriter(new FileWriter(ARCHIVO_CLIENTES, false))) {
-            for (Cliente c : lista) pw.println(c.toLineaTexto());
+            for (Cliente c : lista) {
+                pw.println(c.toLineaTexto());
+            }
         } catch (IOException e) {
-            System.err.println("Error al actualizar clientes: " + e.getMessage());
+            System.err.println("Error al actualizar archivo de clientes: " + e.getMessage());
         }
     }
 }
