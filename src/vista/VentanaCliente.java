@@ -795,10 +795,11 @@ public class VentanaCliente extends JFrame {
     }
 
 
+
     private void eliminarReserva() {
         int fila = tablaReservas.getSelectedRow();
         if (fila == -1) {
-            JOptionPane.showMessageDialog(this, "Seleccione una reserva de la tabla.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Seleccione una reserva de la tabla para eliminar.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
         String idRes = modeloReservas.getValueAt(fila, 0).toString();
@@ -810,16 +811,18 @@ public class VentanaCliente extends JFrame {
         }
     }
 
+
     private void limpiarCamposReserva() {
         txtResId.setText("");
         txtResId.setEnabled(true);
-        txtResFecha.setText("");
-        txtResMonto.setText("");
+        txtResFechaInicio.setText("");
+        txtResDias.setText("");
+        listHabitacionesMultiples.clearSelection();
         if (cmbResCliente.getItemCount() > 0) cmbResCliente.setSelectedIndex(0);
-        if (cmbResHabitacion.getItemCount() > 0) cmbResHabitacion.setSelectedIndex(0);
         cmbResMetodoPago.setSelectedIndex(0);
         tablaReservas.clearSelection();
     }
+
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new VentanaCliente().setVisible(true));
