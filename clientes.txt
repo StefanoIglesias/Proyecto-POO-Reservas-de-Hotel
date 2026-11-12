@@ -1,1 +1,15 @@
-87654321;Stefano;Iglesias;987654321;stefanoiglesias@gmail.com;1
+12345678;Stefano;Iglesias;987654321;stefanoiglesias@gmail.com;2
+43218765;Marvic;Ecca;984756321;marvicecca@gmail.com;2
+87436521;Adriano;Cueva;921630456;adrianocueva@outlook.com;1
+87354123;Leonardo;Solano;932175897;leonardosolano@hotmail.com;1
+79654821;Elliot;Soto;965874326;elliotsoto@outlook.com;1
+74653920;Elias;Gutierrez;936124587;eliasgutierrez@hotmail.com;1
+73218569;Renzo;Bermeo;948751296;renzobermeo@gmail.com;2
+76532146;Amir;Araujo;918532147;amiraraujo@outlook.com;1
+01659832;Jorge;Lama;968574359;jorgelama@gmail.com;1
+01598623;Mauricio;Gallardo;986390147;mauriciogallardo@hotmail.com;2
+02548967;Luciano;Calderon;987659821;lucianocalderon@gmail.com;1
+02549863;Miguel;Vignolo;910347896;miguelvignolo@gmail.com;1
+76985324;Mario;Ibañez;987689542;marioibañez@outlook.com;1
+09865329;Benyhamin;Tolentino;968993521;benyhamintolentino@gmail.com;1
+76549865;Leonardo;Campos;986539651;leonardocampos@gmail.com;2
