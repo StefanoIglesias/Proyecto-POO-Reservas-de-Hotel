@@ -527,39 +527,41 @@ public class VentanaCliente extends JFrame {
     }
 
     // --- MÉTODOS RESERVAS ---
+
     private void cargarDatosReservas() {
         modeloReservas.setRowCount(0);
         List<Reserva> reservas = servicioReserva.listarReservas();
         List<DetalleReserva> detalles = servicioDetalleReserva.listarDetalles();
 
         for (Reserva r : reservas) {
-            String habId = "N/A";
+            StringBuilder habsStr = new StringBuilder();
             for (DetalleReserva d : detalles) {
                 if (d.getIdReserva().equalsIgnoreCase(r.getIdReserva())) {
-                    habId = d.getIdHabitacion();
-                    break;
+                    habsStr.append(d.getIdHabitacion()).append(" ");
                 }
             }
             modeloReservas.addRow(new Object[]{
-                r.getIdReserva(), r.getFecha(), r.getDniCliente(), habId, r.getMonto(), r.getMetodoPagoTexto()
+                r.getIdReserva(), r.getFechaInicio(), r.getDiasEstadia(), r.getFechaSalida(), r.getDniCliente(), habsStr.toString().trim(), r.getMontoTotal(), r.getMetodoPagoTexto()
             });
         }
+        actualizarMapaHabitaciones();
     }
+
+
 
     private void actualizarCombosReserva() {
         cmbResCliente.removeAllItems();
-        List<Cliente> clientes = servicioCliente.listarClientes();
-        for (Cliente c : clientes) {
-            cmbResCliente.addItem(c.getDni() + " - " + c.getNombres() + " " + c.getApellidos());
-    }
-
-
-        cmbResHabitacion.removeAllItems();
-        List<Habitacion> habitaciones = servicioHabitacion.listarHabitaciones();
-        for (Habitacion h : habitaciones) {
-            cmbResHabitacion.addItem(h.getIdHabitacion() + " (Hab. " + h.getNumero() + ")");
+        for (Cliente c : servicioCliente.listarClientes()) {
+            cmbResCliente.addItem(c.getDni() + " - " + c.getApellidos() + ", " + c.getNombres());
         }
+
+        DefaultListModel<String> listModel = new DefaultListModel<>();
+        for (Habitacion h : servicioHabitacion.listarHabitaciones()) {
+            listModel.addElement(h.getIdHabitacion() + " (Hab. " + h.getNumero() + " - " + obtenerTextoTipoHabitacion(h.getTipo()) + ")");
+        }
+        listHabitacionesMultiples.setModel(listModel);
     }
+
     
     
     private boolean validarDisponibilidadHabitaciones(List<String> idsHabitaciones, LocalDate nuevaInicio, LocalDate nuevaSalida, String idReservaExcluida) {
